@@ -18,3 +18,13 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+
+// ... existing code ...
+
+// Admin Routes
+require __DIR__.'/admin.php';
+
+Route::get('/test-subjects', function() {
+    return \App\Models\Subject::all();
+});
