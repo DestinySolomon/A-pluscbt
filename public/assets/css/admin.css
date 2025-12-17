@@ -402,3 +402,214 @@ body {
         gap: 0.25rem;
     }
 }
+
+
+
+/* ===== Mobile Navigation Improvements ===== */
+
+/* Top navigation mobile fixes */
+.admin-topnav {
+    height: var(--topnav-height);
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* Mobile menu toggle */
+.topnav-left .menu-toggle {
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.topnav-left .menu-toggle:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.topnav-left h5.d-md-none {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-left: 12px;
+}
+
+/* Notification Icon */
+.btn-icon {
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 20px;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}
+
+/* Notification Dropdown */
+.notification-dropdown {
+    width: 320px;
+    padding: 0;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.notification-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    text-decoration: none;
+    color: #374151;
+    transition: background 0.2s;
+}
+
+.notification-item:hover {
+    background: #f9fafb;
+    text-decoration: none;
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f0fdfa;
+    color: #14b8a6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-content p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.notification-content small {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.notification-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+/* Mobile User Avatar */
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #14b8a6, #0d9488);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+    .admin-topnav {
+        padding: 0 0.75rem;
+    }
+    
+    .topnav-right {
+        gap: 0.5rem;
+    }
+    
+    .user-info {
+        display: none;
+    }
+    
+    .admin-user i.ri-arrow-down-s-line {
+        display: none;
+    }
+    
+    .notification-dropdown {
+        position: fixed !important;
+        top: 70px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: calc(100vw - 32px) !important;
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 576px) {
+    .topnav-left h5.d-md-none {
+        font-size: 14px;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+    
+    .btn-icon {
+        font-size: 18px;
+        padding: 6px;
+    }
+}

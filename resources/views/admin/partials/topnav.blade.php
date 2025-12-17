@@ -3,20 +3,75 @@
         <button class="menu-toggle">
             <i class="ri-menu-line"></i>
         </button>
-        <h5 class="mb-0 d-none d-md-inline">@yield('page-title', 'Dashboard')</h5>
+       
     </div>
     
     <div class="topnav-right">
+        <!-- Notification Icon - Mobile & Desktop -->
+        <div class="dropdown">
+            <button class="btn btn-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="ri-notification-3-line"></i>
+                <span class="notification-badge">3</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+                <div class="notification-header">
+                    <h6 class="mb-0">Notifications</h6>
+                    <a href="#" class="small text-primary">Mark all as read</a>
+                </div>
+                <div class="notification-list">
+                    <a href="#" class="notification-item">
+                        <div class="notification-icon">
+                            <i class="ri-user-add-line"></i>
+                        </div>
+                        <div class="notification-content">
+                            <p class="mb-0">New student registered</p>
+                            <small class="text-muted">2 minutes ago</small>
+                        </div>
+                    </a>
+                    <a href="#" class="notification-item">
+                        <div class="notification-icon">
+                            <i class="ri-file-text-line"></i>
+                        </div>
+                        <div class="notification-content">
+                            <p class="mb-0">Exam completed by student</p>
+                            <small class="text-muted">1 hour ago</small>
+                        </div>
+                    </a>
+                    <a href="#" class="notification-item">
+                        <div class="notification-icon">
+                            <i class="ri-question-line"></i>
+                        </div>
+                        <div class="notification-content">
+                            <p class="mb-0">New question added</p>
+                            <small class="text-muted">3 hours ago</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="notification-footer">
+                    <a href="#" class="text-primary">View all notifications</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Profile Dropdown -->
         <div class="dropdown">
             <div class="admin-user" data-bs-toggle="dropdown">
-                <div class="user-avatar">
+                <!-- Mobile: Show only icon -->
+                <div class="user-avatar d-md-none">
                     {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                 </div>
-                <div class="user-info d-none d-md-block">
-                    <div class="fw-medium">{{ Auth::user()->name }}</div>
-                    <small>Administrator</small>
+                
+                <!-- Desktop: Show full info -->
+                <div class="d-none d-md-flex align-items-center gap-3">
+                    <div class="user-avatar">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                    </div>
+                    <div class="user-info">
+                        <div class="fw-medium">{{ Auth::user()->name }}</div>
+                        <small class="text-muted">Administrator</small>
+                    </div>
+                    <i class="ri-arrow-down-s-line"></i>
                 </div>
-                <i class="ri-arrow-down-s-line d-none d-md-block"></i>
             </div>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="{{ route('admin.settings') }}"><i class="ri-user-line me-2"></i>My Profile</a></li>

@@ -27,4 +27,8 @@ require __DIR__.'/admin.php';
 
 Route::get('/test-subjects', function() {
     return \App\Models\Subject::all();
+
+
+
+    
 });

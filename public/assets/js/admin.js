@@ -75,3 +75,64 @@ $(document).ready(function() {
         }
     });
 });
+
+
+// Notification functionality
+// $('.btn-icon[data-bs-toggle="dropdown"]').click(function(e) {
+//     e.stopPropagation();
+    
+//     // Close other dropdowns
+//     $('.dropdown-menu').not($(this).next('.dropdown-menu')).removeClass('show');
+    
+//     // Toggle this dropdown
+//     $(this).next('.dropdown-menu').toggleClass('show');
+    
+//     // Mark notifications as read
+//     $('.notification-badge').fadeOut();
+// });
+
+// Close notifications when clicking outside
+$(document).click(function(event) {
+    if (!$(event.target).closest('.notification-dropdown, .btn-icon').length) {
+        $('.notification-dropdown').removeClass('show');
+    }
+});
+
+// Notification items click
+$('.notification-item').click(function(e) {
+    e.preventDefault();
+    $(this).addClass('read');
+    updateNotificationCount();
+});
+
+// Update notification count
+function updateNotificationCount() {
+    const unreadCount = $('.notification-item:not(.read)').length;
+    const badge = $('.notification-badge');
+    
+    if (unreadCount > 0) {
+        badge.text(unreadCount).fadeIn();
+    } else {
+        badge.fadeOut();
+    }
+}
+
+// Mark all as read
+$('.notification-header a').click(function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    $('.notification-item').addClass('read');
+    updateNotificationCount();
+    
+    // Show confirmation
+    const originalText = $(this).text();
+    $(this).text('Marked all as read!');
+    
+    setTimeout(() => {
+        $(this).text(originalText);
+    }, 2000);
+});
+
+// Initialize notification count
+updateNotificationCount();

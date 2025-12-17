@@ -14,22 +14,45 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
-    {
-        return view('auth.login');
-    }
+    public function create(Request $request): View
+{
+    // Check if admin login was requested
+    $isAdminLogin = $request->has('admin') || $request->routeIs('admin.login');
+    
+    return view('auth.login', [
+        'isAdminLogin' => $isAdminLogin
+    ]);
+}
 
     /**
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request): RedirectResponse
-    {
-        $request->authenticate();
+{
+    $request->authenticate();
 
-        $request->session()->regenerate();
+    $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+    // Get the authenticated user
+    $user = Auth::user();
+    
+    // Check if user is admin
+    if ($user->isAdmin()) {
+        // Check if there's an intended URL
+        $intended = session()->pull('url.intended');
+        
+        // If intended URL is admin route or no intended URL, go to admin dashboard
+        if (!$intended || str_contains($intended, '/admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+        
+        // Otherwise go to intended URL
+        return redirect()->to($intended);
     }
+
+    // For regular users, use Laravel's intended redirect
+    return redirect()->intended(route('dashboard', absolute: false));
+}
 
     /**
      * Destroy an authenticated session.
