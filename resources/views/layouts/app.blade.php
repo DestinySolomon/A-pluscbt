@@ -1,43 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'A-plus CBT - JAMB-Style Computer-Based Testing for Students')</title>
-    
-    <!-- Meta Tags -->
-    <meta name="description" content="Professional JAMB-style computer-based testing platform for secondary school students. Practice with authentic exam conditions, track your progress, and boost your confidence with our comprehensive CBT system featuring timed exams, randomized questions, and instant results.">
-    <meta name="keywords" content="CBT platform, JAMB exam, computer-based test, online exam, student assessment, exam practice, JAMB preparation">
-    
-    <!-- Bootstrap CSS CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Remix Icon CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
-    
-    @stack('styles')
-</head>
-<body>
-    <!-- Navigation -->
-    @include('components.navbar')
-    
-    <!-- Main Content -->
-    <main>
-        @yield('content')
-    </main>
-    
-    <!-- Footer -->
-    @include('components.footer')
-    
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="{{ asset('assets/js/app.js') }}"></script>
-    
-    @stack('scripts')
-</body>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <title>@yield('title', config('app.name', 'A-plus CBT'))</title>
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+        <!-- Remixicon Icons -->
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
+    </head>
+    <body>
+        @include('components.navbar')
+
+        <main>
+            @yield('content')
+        </main>
+
+        @include('components.footer')
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <!-- Custom JS -->
+        <script src="{{ asset('assets/js/app.js') }}"></script>
+    </body>
 </html>

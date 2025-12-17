@@ -8,14 +8,19 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
 }
 
 /* Navigation */
 .navbar {
     background-color: rgba(255, 255, 255, 0.95) !important;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .navbar-brand img {
@@ -49,7 +54,12 @@ body {
 .hero-section {
     padding-top: 120px;
     padding-bottom: 80px;
-    background: linear-gradient(135deg, var(--teal-50) 0%, #ffffff 50%, var(--emerald-50) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--teal-50) 0%,
+        #ffffff 50%,
+        var(--emerald-50) 100%
+    );
     position: relative;
     overflow: hidden;
 }
@@ -92,14 +102,38 @@ body {
     margin-bottom: 24px;
 }
 
-.icon-teal { background-color: var(--teal-100); color: var(--primary-teal); }
-.icon-emerald { background-color: var(--emerald-100); color: #10b981; }
-.icon-blue { background-color: #dbeafe; color: #3b82f6; }
-.icon-purple { background-color: #f3e8ff; color: #a855f7; }
-.icon-orange { background-color: #fed7aa; color: #f97316; }
-.icon-pink { background-color: #fce7f3; color: #ec4899; }
-.icon-green { background-color: #d1fae5; color: #059669; }
-.icon-indigo { background-color: #e0e7ff; color: #6366f1; }
+.icon-teal {
+    background-color: var(--teal-100);
+    color: var(--primary-teal);
+}
+.icon-emerald {
+    background-color: var(--emerald-100);
+    color: #10b981;
+}
+.icon-blue {
+    background-color: #dbeafe;
+    color: #3b82f6;
+}
+.icon-purple {
+    background-color: #f3e8ff;
+    color: #a855f7;
+}
+.icon-orange {
+    background-color: #fed7aa;
+    color: #f97316;
+}
+.icon-pink {
+    background-color: #fce7f3;
+    color: #ec4899;
+}
+.icon-green {
+    background-color: #d1fae5;
+    color: #059669;
+}
+.icon-indigo {
+    background-color: #e0e7ff;
+    color: #6366f1;
+}
 
 /* Steps */
 .step-number {
@@ -152,26 +186,6 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Pricing Cards */
-.pricing-card {
-    background: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
-    height: 100%;
-}
-
-.pricing-card:hover {
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    transform: translateY(-5px);
-}
-
-.pricing-featured {
-    border: 3px solid var(--primary-teal);
-    position: relative;
-}
-
 /* Hover Effects */
 .hover-shadow {
     transition: all 0.3s;
@@ -186,6 +200,14 @@ body {
 footer {
     background-color: #111827;
     color: #d1d5db;
+}
+
+footer a {
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: var(--primary-teal) !important;
 }
 
 /* Hero Image */
@@ -206,16 +228,273 @@ footer {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
+/* Footer "Site by Dee" styling */
+.site-by-dee {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.site-by-dee:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.site-by-dee a:hover {
+    color: #14b8a6 !important;
+}
+
+/* Optional: Add a subtle animation for the heart */
+@keyframes heartbeat {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.site-by-dee .ri-heart-fill {
+    animation: heartbeat 1.5s infinite;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .hero-section {
         padding-top: 100px;
     }
-    
+
     .hero-badge {
         position: relative;
         bottom: 0;
         left: 0;
         margin-top: 20px;
+    }
+}
+
+/* JS CSS FILES */
+
+/* ===== JavaScript Enhanced Styles ===== */
+
+/* 1. Back to top button */
+.back-to-top-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary-teal);
+    color: white;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(20, 184, 166, 0.3);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.back-to-top-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.back-to-top-btn:hover {
+    background: var(--primary-teal-dark);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(20, 184, 166, 0.4);
+    width: 120px;
+    border-radius: 28px;
+}
+
+.back-to-top-btn .ri-arrow-up-line {
+    font-size: 20px;
+    transition: transform 0.3s;
+}
+
+.back-to-top-btn:hover .ri-arrow-up-line {
+    transform: translateY(-2px);
+}
+
+.back-to-top-text {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    position: absolute;
+    bottom: 8px;
+}
+
+.back-to-top-btn:hover .back-to-top-text {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 2. Form validation styles */
+.is-invalid {
+    border-color: #ef4444 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23ef4444'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23ef4444' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.is-invalid:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 0.25rem rgba(239, 68, 68, 0.25);
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+}
+
+/* 3. Loading spinner */
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 4. Notification system */
+.homepage-notification {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    min-width: 300px;
+    max-width: 400px;
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+    border-left: 4px solid;
+}
+
+.homepage-notification.show {
+    transform: translateX(0);
+}
+
+.notification-success {
+    border-left-color: #10b981;
+}
+
+.notification-error {
+    border-left-color: #ef4444;
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-content i {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.notification-success .notification-content i {
+    color: #10b981;
+}
+
+.notification-error .notification-content i {
+    color: #ef4444;
+}
+
+.notification-content span {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.notification-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.notification-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* 5. Navbar scroll enhancement */
+.navbar {
+    transition: all 0.3s ease !important;
+}
+
+.navbar.scrolled {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 6. Statistics animation */
+.stat-card h3 {
+    transition: all 0.3s;
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Mobile responsiveness for notifications */
+@media (max-width: 768px) {
+    .back-to-top-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+    }
+
+    .back-to-top-btn:hover {
+        width: 50px;
+    }
+
+    .back-to-top-text {
+        display: none;
+    }
+
+    .homepage-notification {
+        left: 20px;
+        right: 20px;
+        max-width: none;
     }
 }
