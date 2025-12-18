@@ -36,11 +36,14 @@ class Subject extends Model
     /**
      * Get the main topics (no parent) for this subject.
      */
-    public function mainTopics(): HasMany
-    {
-        return $this->hasMany(Topic::class)->whereNull('parent_id')->orderBy('syllabus_order');
-    }
-
+   /**
+ * Get the main topics (no parent) for this subject.
+ */
+public function mainTopics(): HasMany
+{
+    // Remove the whereNull('parent_id') condition
+    return $this->hasMany(Topic::class)->orderBy('syllabus_order');
+}
     /**
      * Scope for active subjects.
      */

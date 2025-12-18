@@ -158,184 +158,180 @@ class ExamAttempt extends Model
         ]);
     }
 
-
-
+    /**
+     * Add or update an answer for a question.
+     */
+    public function addAnswer(Question $question, Option $selectedOption, int $timeSpent = 0, bool $markedForReview = false): Answer
+    {
+        // Check if answer already exists
+        $answer = $this->answers()->where('question_id', $question->id)->first();
+        
+        if ($answer) {
+            // Update existing answer
+            $answer->update([
+                'selected_option_id' => $selectedOption->id,
+                'selected_option' => $selectedOption->option_letter,
+                'is_correct' => $selectedOption->is_correct,
+                'time_spent_seconds' => $timeSpent,
+                'marked_for_review' => $markedForReview,
+                'skipped' => false,
+            ]);
+        } else {
+            // Create new answer
+            $answer = $this->answers()->create([
+                'question_id' => $question->id,
+                'selected_option_id' => $selectedOption->id,
+                'selected_option' => $selectedOption->option_letter,
+                'is_correct' => $selectedOption->is_correct,
+                'time_spent_seconds' => $timeSpent,
+                'marked_for_review' => $markedForReview,
+                'skipped' => false,
+            ]);
+        }
+        
+        // Update attempt score
+        $this->updateScore();
+        
+        return $answer;
+    }
 
     /**
- * Add or update an answer for a question.
- */
-public function addAnswer(Question $question, Option $selectedOption, int $timeSpent = 0, bool $markedForReview = false): Answer
-{
-    // Check if answer already exists
-    $answer = $this->answers()->where('question_id', $question->id)->first();
-    
-    if ($answer) {
-        // Update existing answer
-        $answer->update([
-            'selected_option_id' => $selectedOption->id,
-            'selected_option' => $selectedOption->option_letter,
-            'is_correct' => $selectedOption->is_correct,
-            'time_spent_seconds' => $timeSpent,
-            'marked_for_review' => $markedForReview,
-            'skipped' => false,
-        ]);
-    } else {
-        // Create new answer
-        $answer = $this->answers()->create([
-            'question_id' => $question->id,
-            'selected_option_id' => $selectedOption->id,
-            'selected_option' => $selectedOption->option_letter,
-            'is_correct' => $selectedOption->is_correct,
-            'time_spent_seconds' => $timeSpent,
-            'marked_for_review' => $markedForReview,
-            'skipped' => false,
-        ]);
-    }
-    
-    // Update attempt score
-    $this->updateScore();
-    
-    return $answer;
-}
-
-/**
- * Skip a question.
- */
-public function skipQuestion(Question $question): Answer
-{
-    $answer = $this->answers()->where('question_id', $question->id)->first();
-    
-    if (!$answer) {
-        $answer = $this->answers()->create([
-            'question_id' => $question->id,
-            'selected_option_id' => null,
-            'selected_option' => null,
-            'is_correct' => false,
-            'skipped' => true,
-        ]);
-    } else {
-        $answer->update(['skipped' => true]);
-    }
-    
-    return $answer;
-}
-
-/**
- * Get answers for review.
- */
-public function answersForReview()
-{
-    return $this->answers()->where('marked_for_review', true)->get();
-}
-
-/**
- * Get skipped questions.
- */
-public function skippedQuestions()
-{
-    return $this->answers()->where('skipped', true)->get();
-}
-
-
-/**
- * Generate a result record from this attempt.
- */
-public function generateResult(): Result
-{
-    // Calculate subject breakdown
-    $subjectBreakdown = [];
-    $topicBreakdown = [];
-    $difficultyBreakdown = [
-        'easy' => ['correct' => 0, 'total' => 0],
-        'medium' => ['correct' => 0, 'total' => 0],
-        'hard' => ['correct' => 0, 'total' => 0],
-    ];
-    
-    foreach ($this->answers as $answer) {
-        $question = $answer->question;
-        $subject = $question->subject;
-        $topic = $question->topic;
+     * Skip a question.
+     */
+    public function skipQuestion(Question $question): Answer
+    {
+        $answer = $this->answers()->where('question_id', $question->id)->first();
         
-        // Subject breakdown
-        if (!isset($subjectBreakdown[$subject->code])) {
-            $subjectBreakdown[$subject->code] = [
-                'name' => $subject->name,
-                'correct' => 0,
-                'total' => 0,
-            ];
-        }
-        $subjectBreakdown[$subject->code]['total']++;
-        if ($answer->is_correct) {
-            $subjectBreakdown[$subject->code]['correct']++;
+        if (!$answer) {
+            $answer = $this->answers()->create([
+                'question_id' => $question->id,
+                'selected_option_id' => null,
+                'selected_option' => null,
+                'is_correct' => false,
+                'skipped' => true,
+            ]);
+        } else {
+            $answer->update(['skipped' => true]);
         }
         
-        // Topic breakdown
-        if ($topic) {
-            $topicKey = $topic->id;
-            if (!isset($topicBreakdown[$topicKey])) {
-                $topicBreakdown[$topicKey] = [
-                    'name' => $topic->name,
+        return $answer;
+    }
+
+    /**
+     * Get answers for review.
+     */
+    public function answersForReview()
+    {
+        return $this->answers()->where('marked_for_review', true)->get();
+    }
+
+    /**
+     * Get skipped questions.
+     */
+    public function skippedQuestions()
+    {
+        return $this->answers()->where('skipped', true)->get();
+    }
+
+    /**
+     * Generate a result record from this attempt.
+     */
+    public function generateResult(): Result
+    {
+        // Calculate subject breakdown
+        $subjectBreakdown = [];
+        $topicBreakdown = [];
+        $difficultyBreakdown = [
+            'easy' => ['correct' => 0, 'total' => 0],
+            'medium' => ['correct' => 0, 'total' => 0],
+            'hard' => ['correct' => 0, 'total' => 0],
+        ];
+        
+        foreach ($this->answers as $answer) {
+            $question = $answer->question;
+            $subject = $question->subject;
+            $topic = $question->topic;
+            
+            // Subject breakdown
+            if (!isset($subjectBreakdown[$subject->code])) {
+                $subjectBreakdown[$subject->code] = [
+                    'name' => $subject->name,
                     'correct' => 0,
                     'total' => 0,
                 ];
             }
-            $topicBreakdown[$topicKey]['total']++;
+            $subjectBreakdown[$subject->code]['total']++;
             if ($answer->is_correct) {
-                $topicBreakdown[$topicKey]['correct']++;
+                $subjectBreakdown[$subject->code]['correct']++;
+            }
+            
+            // Topic breakdown
+            if ($topic) {
+                $topicKey = $topic->id;
+                if (!isset($topicBreakdown[$topicKey])) {
+                    $topicBreakdown[$topicKey] = [
+                        'name' => $topic->name,
+                        'correct' => 0,
+                        'total' => 0,
+                    ];
+                }
+                $topicBreakdown[$topicKey]['total']++;
+                if ($answer->is_correct) {
+                    $topicBreakdown[$topicKey]['correct']++;
+                }
+            }
+            
+            // Difficulty breakdown
+            $difficultyBreakdown[$question->difficulty]['total']++;
+            if ($answer->is_correct) {
+                $difficultyBreakdown[$question->difficulty]['correct']++;
             }
         }
         
-        // Difficulty breakdown
-        $difficultyBreakdown[$question->difficulty]['total']++;
-        if ($answer->is_correct) {
-            $difficultyBreakdown[$question->difficulty]['correct']++;
+        // Calculate percentages
+        foreach ($subjectBreakdown as &$subject) {
+            $subject['percentage'] = $subject['total'] > 0 
+                ? round(($subject['correct'] / $subject['total']) * 100, 2) 
+                : 0;
         }
+        
+        foreach ($topicBreakdown as &$topic) {
+            $topic['percentage'] = $topic['total'] > 0 
+                ? round(($topic['correct'] / $topic['total']) * 100, 2) 
+                : 0;
+        }
+        
+        // Calculate rank (simplified - would need actual ranking logic)
+        $totalParticipants = $this->exam->completedAttempts()->count();
+        $rank = $this->exam->completedAttempts()
+            ->where('percentage', '>', $this->percentage)
+            ->count() + 1;
+        
+        // Create result
+        return Result::create([
+            'user_id' => $this->user_id,
+            'exam_id' => $this->exam_id,
+            'exam_attempt_id' => $this->id,
+            'total_questions' => $this->total_questions,
+            'questions_answered' => $this->questions_answered,
+            'correct_answers' => $this->correct_answers,
+            'wrong_answers' => $this->wrong_answers,
+            'score' => $this->score,
+            'percentage' => $this->percentage,
+            'grade' => $this->grade,
+            'is_passed' => $this->is_passed,
+            'time_spent_seconds' => $this->time_spent,
+            'average_time_per_question' => $this->total_questions > 0 
+                ? round($this->time_spent / $this->total_questions, 2) 
+                : 0,
+            'subject_breakdown' => $subjectBreakdown,
+            'topic_breakdown' => $topicBreakdown,
+            'difficulty_breakdown' => $difficultyBreakdown,
+            'rank' => $rank,
+            'total_participants' => $totalParticipants,
+            'exam_date' => $this->started_at,
+            'completion_status' => $this->status,
+            'student_notes' => $this->notes,
+        ]);
     }
-    
-    // Calculate percentages
-    foreach ($subjectBreakdown as &$subject) {
-        $subject['percentage'] = $subject['total'] > 0 
-            ? round(($subject['correct'] / $subject['total']) * 100, 2) 
-            : 0;
-    }
-    
-    foreach ($topicBreakdown as &$topic) {
-        $topic['percentage'] = $topic['total'] > 0 
-            ? round(($topic['correct'] / $topic['total']) * 100, 2) 
-            : 0;
-    }
-    
-    // Calculate rank (simplified - would need actual ranking logic)
-    $totalParticipants = $this->exam->completedAttempts()->count();
-    $rank = $this->exam->completedAttempts()
-        ->where('percentage', '>', $this->percentage)
-        ->count() + 1;
-    
-    // Create result
-    return Result::create([
-        'user_id' => $this->user_id,
-        'exam_id' => $this->exam_id,
-        'exam_attempt_id' => $this->id,
-        'total_questions' => $this->total_questions,
-        'questions_answered' => $this->questions_answered,
-        'correct_answers' => $this->correct_answers,
-        'wrong_answers' => $this->wrong_answers,
-        'score' => $this->score,
-        'percentage' => $this->percentage,
-        'grade' => $this->grade,
-        'is_passed' => $this->is_passed,
-        'time_spent_seconds' => $this->time_spent,
-        'average_time_per_question' => $this->total_questions > 0 
-            ? round($this->time_spent / $this->total_questions, 2) 
-            : 0,
-        'subject_breakdown' => $subjectBreakdown,
-        'topic_breakdown' => $topicBreakdown,
-        'difficulty_breakdown' => $difficultyBreakdown,
-        'rank' => $rank,
-        'total_participants' => $totalParticipants,
-        'exam_date' => $this->started_at,
-        'completion_status' => $this->status,
-        'student_notes' => $this->notes,
-    ]);
-}
 }

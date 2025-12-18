@@ -93,5 +93,11 @@
     <script src="{{ asset('assets/js/admin.js') }}"></script>
     
     @stack('scripts')
+
+    <!-- Floating Home Button -->
+<!-- Floating Home Button to Public Site -->
+<a href="{{ url('/') }}" class="floating-home-btn" title="Back to Home Page">
+    <i class="ri-home-line"></i>
+</a>
 </body>
 </html>

@@ -17,7 +17,8 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif;
     background-color: var(--content-bg);
     overflow-x: hidden;
 }
@@ -373,16 +374,17 @@ body {
 @media (max-width: 992px) {
     .admin-sidebar {
         transform: translateX(-100%);
+        height: 100vh;
     }
-    
+
     .admin-sidebar.active {
         transform: translateX(0);
     }
-    
+
     .admin-main {
         margin-left: 0;
     }
-    
+
     .topnav-left .menu-toggle {
         display: block;
     }
@@ -392,18 +394,16 @@ body {
     .admin-topnav {
         padding: 0 1rem;
     }
-    
+
     .stats-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .table-actions {
         flex-direction: column;
         gap: 0.25rem;
     }
 }
-
-
 
 /* ===== Mobile Navigation Improvements ===== */
 
@@ -570,27 +570,27 @@ body {
     .admin-topnav {
         padding: 0 0.75rem;
     }
-    
+
     .topnav-right {
         gap: 0.5rem;
     }
-    
+
     .user-info {
         display: none;
     }
-    
+
     .admin-user i.ri-arrow-down-s-line {
         display: none;
     }
-    
+/* 
     .notification-dropdown {
         position: fixed !important;
-        top: 70px !important;
-        left: 50% !important;
+        top: 10px !important;
+        right: 50% !important;
         transform: translateX(-50%) !important;
         width: calc(100vw - 32px) !important;
         max-width: 400px;
-    }
+    } */
 }
 
 @media (max-width: 576px) {
@@ -601,15 +601,285 @@ body {
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-    
+
     .user-avatar {
         width: 32px;
         height: 32px;
         font-size: 12px;
     }
-    
+
     .btn-icon {
         font-size: 18px;
         padding: 6px;
+    }
+}
+
+/* ===== MOBILE RESPONSIVE IMPROVEMENTS ===== */
+
+/* Top Navigation Spacing Fix */
+.admin-topnav {
+    padding: 0 1.5rem;
+}
+
+.topnav-right {
+    gap: 0.75rem;
+    padding-right: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .admin-topnav {
+        padding: 0 1rem;
+    }
+
+    .topnav-right {
+        gap: 0.5rem;
+        padding-right: 0.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-topnav {
+        padding: 0 0.75rem;
+    }
+
+    .topnav-left {
+        padding-left: 0.25rem;
+    }
+
+    .topnav-right {
+        padding-right: 0;
+        margin-right: 0.25rem;
+    }
+}
+
+/* Table Wrapper for Horizontal Scroll */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Page Header Mobile */
+@media (max-width: 768px) {
+    .d-flex.justify-content-between.align-items-center.mb-4 {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 1rem;
+    }
+
+    .d-flex.justify-content-between.align-items-center.mb-4 > div:last-child {
+        width: 100%;
+    }
+
+    .d-flex.justify-content-between.align-items-center.mb-4 .btn-admin {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Mobile Table Improvements */
+@media (max-width: 992px) {
+    .admin-table {
+        font-size: 14px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 0.75rem 0.5rem;
+        white-space: nowrap;
+    }
+
+    /* Make Actions Column Sticky on Mobile */
+    .admin-table th:last-child,
+    .admin-table td:last-child {
+        position: sticky;
+        right: 0;
+        background: white;
+        box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .admin-table th:last-child {
+        background: #f9fafb;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Smaller buttons on mobile */
+    .btn-admin.btn-sm {
+        padding: 0.375rem 0.5rem;
+        font-size: 12px;
+    }
+
+    .btn-admin.btn-sm i {
+        font-size: 14px;
+    }
+
+    /* Stack table actions vertically on very small screens */
+    .table-actions {
+        flex-direction: row;
+        gap: 0.25rem;
+    }
+
+    /* Hide less important columns on mobile */
+    .admin-table th:nth-child(3), /* Code */
+    .admin-table td:nth-child(3),
+    .admin-table th:nth-child(4), /* Description */
+    .admin-table td:nth-child(4),
+    .admin-table th:nth-child(6), /* Order */
+    .admin-table td:nth-child(6) {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Further reduce padding */
+    .container-fluid.py-4 {
+        padding: 1rem !important;
+    }
+
+    .admin-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Hide even more columns on extra small screens */
+    .admin-table th:nth-child(7), /* Questions */
+    .admin-table td:nth-child(7) {
+        display: none;
+    }
+
+    /* Adjust page title */
+    .admin-content h4.fw-bold {
+        font-size: 1.25rem;
+    }
+
+    .breadcrumb {
+        font-size: 0.875rem;
+    }
+}
+
+/* DataTables Mobile Improvements */
+@media (max-width: 768px) {
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 1rem;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100%;
+    }
+
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        text-align: center;
+        margin-top: 1rem;
+    }
+}
+
+/* Empty State Mobile */
+@media (max-width: 576px) {
+    .empty-state {
+        padding: 2rem 0.5rem;
+    }
+
+    .empty-state i {
+        font-size: 36px !important;
+    }
+
+    .empty-state h5 {
+        font-size: 1.125rem;
+    }
+
+    .empty-state p {
+        font-size: 0.875rem;
+    }
+}
+
+/* Sidebar Mobile Overlay */
+@media (max-width: 992px) {
+    .admin-sidebar.active::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+    }
+}
+
+/* Fix dropdown positioning on mobile */
+@media (max-width: 576px) {
+    .dropdown-menu {
+        max-width: calc(100vw - 32px);
+    }
+
+    .dropdown-menu.dropdown-menu-end {
+        right: 0 !important;
+        left: auto !important;
+    }
+}
+
+
+
+/* Floating Home Button */
+.floating-home-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: #14b8a6;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.floating-home-btn:hover {
+    background: #0d9488;
+    color: white;
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4);
+}
+
+.floating-home-btn:active {
+    transform: translateY(-2px);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .floating-home-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
     }
 }

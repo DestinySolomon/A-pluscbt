@@ -16,9 +16,16 @@
                 <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#contact">Contact</a></li>
                 @auth
                     <li class="nav-item ms-lg-2">
-                        <a class="nav-link" href="{{ route('dashboard') }}">
-                            <i class="ri-dashboard-line me-1"></i> Dashboard
-                        </a>
+                        {{-- Fixed: Use isAdmin() method instead of is_admin property --}}
+                        @if(auth()->user()->isAdmin())
+                            <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                                <i class="ri-dashboard-line me-1"></i> Admin Dashboard
+                            </a>
+                        @else
+                            <a class="nav-link" href="{{ route('dashboard') }}">
+                                <i class="ri-dashboard-line me-1"></i> My Dashboard
+                            </a>
+                        @endif
                     </li>
                     <li class="nav-item ms-lg-2">
                         <form method="POST" action="{{ route('logout') }}">

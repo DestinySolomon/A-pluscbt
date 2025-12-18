@@ -199,12 +199,12 @@
             </div>
         </div>
         
-        <div class="d-flex justify-content-between align-items-center mt-4">
-            <a href="{{ route('admin.subjects.index') }}" class="btn-admin btn-admin-secondary">
+        <div class="d-block d-sm-flex justify-content-between align-items-center mt-4">
+            <a href="{{ route('admin.subjects.index') }}" class="btn-admin btn-admin-secondary mb-2 mb-sm-0 d-block d-sm-inline-block">
                 <i class="ri-arrow-left-line me-2"></i> Back to List
             </a>
             
-            <div class="d-flex gap-2">
+            <div class="d-grid d-sm-flex gap-2">
                 <a href="{{ route('admin.subjects.show', $subject) }}" class="btn-admin btn-admin-secondary">
                     <i class="ri-close-line me-2"></i> Cancel
                 </a>

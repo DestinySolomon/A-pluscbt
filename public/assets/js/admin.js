@@ -17,24 +17,24 @@ $(document).ready(function() {
     });
     
     // Initialize DataTables
-    $('.data-table').DataTable({
-        responsive: true,
-        language: {
-            search: "_INPUT_",
-            searchPlaceholder: "Search...",
-            lengthMenu: "_MENU_ records per page",
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "Showing 0 to 0 of 0 entries",
-            infoFiltered: "(filtered from _MAX_ total entries)",
-            zeroRecords: "No matching records found",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            }
-        }
-    });
+    // $('.data-table').DataTable({
+    //     responsive: true,
+    //     language: {
+    //         search: "_INPUT_",
+    //         searchPlaceholder: "Search...",
+    //         lengthMenu: "_MENU_ records per page",
+    //         info: "Showing _START_ to _END_ of _TOTAL_ entries",
+    //         infoEmpty: "Showing 0 to 0 of 0 entries",
+    //         infoFiltered: "(filtered from _MAX_ total entries)",
+    //         zeroRecords: "No matching records found",
+    //         paginate: {
+    //             first: "First",
+    //             last: "Last",
+    //             next: "Next",
+    //             previous: "Previous"
+    //         }
+    //     }
+    // });
     
     // Confirm before delete
     $('.confirm-delete').click(function(e) {

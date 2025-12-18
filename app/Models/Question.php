@@ -31,6 +31,43 @@ class Question extends Model
         'times_correct' => 'integer',
     ];
 
+    // ADD THESE ACCESSORS FOR BACKWARD COMPATIBILITY
+    public function getQuestionAttribute()
+    {
+        return $this->question_text;
+    }
+
+    public function setQuestionAttribute($value)
+    {
+        $this->attributes['question_text'] = $value;
+    }
+
+    public function getOptionAAttribute()
+    {
+        return $this->options->firstWhere('option_letter', 'A')->option_text ?? null;
+    }
+
+    public function getOptionBAttribute()
+    {
+        return $this->options->firstWhere('option_letter', 'B')->option_text ?? null;
+    }
+
+    public function getOptionCAttribute()
+    {
+        return $this->options->firstWhere('option_letter', 'C')->option_text ?? null;
+    }
+
+    public function getOptionDAttribute()
+    {
+        return $this->options->firstWhere('option_letter', 'D')->option_text ?? null;
+    }
+
+    public function getCorrectOptionAttribute()
+    {
+        return $this->options->where('is_correct', true)->first()->option_letter ?? null;
+    }
+    // END OF ACCESSORS
+
     /**
      * Get the subject this question belongs to.
      */
@@ -63,33 +100,32 @@ class Question extends Model
         return $this->options()->where('is_correct', true)->first();
     }
 
+    /**
+     * Get options ordered by letter (A, B, C, D).
+     */
+    public function getOrderedOptionsAttribute()
+    {
+        return $this->options()->orderBy('option_letter')->get();
+    }
 
     /**
- * Get options ordered by letter (A, B, C, D).
- */
-public function getOrderedOptionsAttribute()
-{
-    return $this->options()->orderBy('option_letter')->get();
-}
+     * Get shuffled options (for exam display).
+     */
+    public function getShuffledOptionsAttribute()
+    {
+        return $this->options()->inRandomOrder()->get();
+    }
 
-/**
- * Get shuffled options (for exam display).
- */
-public function getShuffledOptionsAttribute()
-{
-    return $this->options()->inRandomOrder()->get();
-}
-
-/**
- * Check if an option letter is correct.
- */
-public function isOptionCorrect(string $optionLetter): bool
-{
-    return $this->options()
-        ->where('option_letter', $optionLetter)
-        ->where('is_correct', true)
-        ->exists();
-}
+    /**
+     * Check if an option letter is correct.
+     */
+    public function isOptionCorrect(string $optionLetter): bool
+    {
+        return $this->options()
+            ->where('option_letter', $optionLetter)
+            ->where('is_correct', true)
+            ->exists();
+    }
 
     /**
      * Scope for active questions.
@@ -133,20 +169,19 @@ public function isOptionCorrect(string $optionLetter): bool
         $this->save();
     }
 
+    /**
+     * Check if this question was answered in an attempt.
+     */
+    public function isAnsweredInAttempt(ExamAttempt $attempt): bool
+    {
+        return $attempt->answers()->where('question_id', $this->id)->exists();
+    }
 
     /**
- * Check if this question was answered in an attempt.
- */
-public function isAnsweredInAttempt(ExamAttempt $attempt): bool
-{
-    return $attempt->answers()->where('question_id', $this->id)->exists();
-}
-
-/**
- * Get answer for this question in an attempt.
- */
-public function getAnswerInAttempt(ExamAttempt $attempt)
-{
-    return $attempt->answers()->where('question_id', $this->id)->first();
-}
+     * Get answer for this question in an attempt.
+     */
+    public function getAnswerInAttempt(ExamAttempt $attempt)
+    {
+        return $attempt->answers()->where('question_id', $this->id)->first();
+    }
 }

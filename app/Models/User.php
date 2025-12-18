@@ -114,6 +114,9 @@ class User extends Authenticatable
         return $query->where('role', 'admin');
     }
 
+    // In app/Models/User.php
+
+
     /**
      * Scope for student users.
      */

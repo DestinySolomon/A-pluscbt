@@ -37,7 +37,8 @@ class AuthenticatedSessionController extends Controller
     $user = Auth::user();
     
     // Check if user is admin
-    if ($user->isAdmin()) {
+   /** @var \App\Models\User $user */
+       if ($user->isAdmin()) {
         // Check if there's an intended URL
         $intended = session()->pull('url.intended');
         
