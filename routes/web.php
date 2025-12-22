@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\TestimonialController;
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -24,10 +25,6 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 
-// ... existing code ...
-
-// Admin Routes
-require __DIR__.'/admin.php';
 
 Route::get('/test-subjects', function() {
     return \App\Models\Subject::all();
@@ -36,3 +33,9 @@ Route::get('/test-subjects', function() {
 
     
 });
+
+// Testimonials Routes
+Route::get('/testimonials', [TestimonialController::class, 'index'])->name('testimonials.all');
+Route::get('/testimonials/{id}', [TestimonialController::class, 'show'])->name('testimonials.show');
+Route::get('/testimonials/submit', [TestimonialController::class, 'submitForm'])->name('testimonials.submit');
+Route::post('/testimonials', [TestimonialController::class, 'store'])->name('testimonials.store');

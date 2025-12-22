@@ -33,7 +33,7 @@
         <i class="ri-edit-line me-2"></i> Edit Exam
     </a>
     
-    <a href="{{ route('admin.exams.preview', $exam->id) }}" class="btn-admin btn-admin-info" target="_blank">
+    <a href="{{ route('admin.exams.preview', $exam->id) }}" class="btn-admin btn-admin-info">
         <i class="ri-eye-line me-2"></i> Preview
     </a>
     
@@ -467,7 +467,7 @@
                         <i class="ri-edit-line me-2"></i> Edit Exam
                     </a>
                     
-                    <a href="{{ route('admin.exams.preview', $exam->id) }}" class="btn-admin btn-admin-secondary" target="_blank">
+                    <a href="{{ route('admin.exams.preview', $exam->id) }}" class="btn-admin btn-admin-secondary">
                         <i class="ri-eye-line me-2"></i> Preview as Student
                     </a>
                     

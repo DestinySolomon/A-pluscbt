@@ -1,8 +1,17 @@
+@php
+    $logo = App\Models\Setting::get('logo');
+    $siteName = App\Models\Setting::get('site_name', 'A-plus CBT');
+@endphp
+
 <nav class="navbar navbar-expand-lg navbar-light fixed-top">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-            <img src="{{ asset('assets/images/logo.png') }}" alt="A-plus CBT Logo" class="me-2">
-            <span class="fw-bold fs-5">A-plus CBT</span>
+            @if($logo && Storage::disk('public')->exists($logo))
+                <img src="{{ asset('storage/' . $logo) }}" alt="{{ $siteName }} Logo" class="me-2" style="max-height: 40px; object-fit: contain;">
+            @else
+                <img src="{{ asset('assets/images/logo.png') }}" alt="{{ $siteName }} Logo" class="me-2">
+            @endif
+            <span class="fw-bold fs-5">{{ $siteName }}</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -16,7 +25,6 @@
                 <li class="nav-item"><a class="nav-link" href="{{ route('home') }}#contact">Contact</a></li>
                 @auth
                     <li class="nav-item ms-lg-2">
-                        {{-- Fixed: Use isAdmin() method instead of is_admin property --}}
                         @if(auth()->user()->isAdmin())
                             <a class="nav-link" href="{{ route('admin.dashboard') }}">
                                 <i class="ri-dashboard-line me-1"></i> Admin Dashboard

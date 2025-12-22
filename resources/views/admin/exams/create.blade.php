@@ -46,7 +46,7 @@
                                                name="name" 
                                                value="{{ old('name') }}" 
                                                required
-                                               placeholder="e.g., JAMB UTME Mock Exam 2024">
+                                               placeholder="e.g., JAMB UTME Mock Exam 2025">
                                         @error('name')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -62,7 +62,7 @@
                                                name="code" 
                                                value="{{ old('code') }}" 
                                                required
-                                               placeholder="e.g., JAMB-MOCK-2024-01">
+                                               placeholder="e.g., JAMB-MOCK-2025-01">
                                         <small class="text-muted">Unique identifier for the exam</small>
                                         @error('code')
                                             <div class="invalid-feedback">{{ $message }}</div>

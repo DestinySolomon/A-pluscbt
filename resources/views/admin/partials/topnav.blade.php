@@ -3,7 +3,6 @@
         <button class="menu-toggle">
             <i class="ri-menu-line"></i>
         </button>
-       
     </div>
     
     <div class="topnav-right">
@@ -56,15 +55,29 @@
         <!-- User Profile Dropdown -->
         <div class="dropdown">
             <div class="admin-user" data-bs-toggle="dropdown">
-                <!-- Mobile: Show only icon -->
+                <!-- Mobile: Show only icon/image -->
                 <div class="user-avatar d-md-none">
-                    {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                    @if(Auth::user()->profile_image_url)
+                        <img src="{{ Auth::user()->profile_image_url }}" 
+                             alt="{{ Auth::user()->name }}"
+                             class="user-avatar-img"
+                             onerror="this.style.display='none'; this.parentNode.innerHTML='{{ Auth::user()->initials }}';">
+                    @else
+                        {{ Auth::user()->initials }}
+                    @endif
                 </div>
                 
                 <!-- Desktop: Show full info -->
                 <div class="d-none d-md-flex align-items-center gap-3">
                     <div class="user-avatar">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                        @if(Auth::user()->profile_image_url)
+                            <img src="{{ Auth::user()->profile_image_url }}" 
+                                 alt="{{ Auth::user()->name }}"
+                                 class="user-avatar-img"
+                                 onerror="this.style.display='none'; this.parentNode.innerHTML='{{ Auth::user()->initials }}';">
+                        @else
+                            {{ Auth::user()->initials }}
+                        @endif
                     </div>
                     <div class="user-info">
                         <div class="fw-medium">{{ Auth::user()->name }}</div>
@@ -74,8 +87,8 @@
                 </div>
             </div>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{{ route('admin.settings') }}"><i class="ri-user-line me-2"></i>My Profile</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.settings') }}"><i class="ri-settings-3-line me-2"></i>Settings</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.profile') }}"><i class="ri-user-line me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.settings') }}"><i class="ri-settings-3-line me-2"></i>System Settings</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
                     <a class="dropdown-item text-danger" href="{{ route('logout') }}" 

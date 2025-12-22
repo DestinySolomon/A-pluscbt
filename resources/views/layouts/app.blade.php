@@ -5,7 +5,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>@yield('title', config('app.name', 'A-plus CBT'))</title>
+        {{-- Dynamic Settings --}}
+        @php
+            $favicon = App\Models\Setting::get('favicon');
+            $siteName = App\Models\Setting::get('site_name', config('app.name', 'A-plus CBT'));
+            $logo = App\Models\Setting::get('logo');
+        @endphp
+
+        {{-- Dynamic Favicon --}}
+        @if($favicon && Storage::disk('public')->exists($favicon))
+            <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $favicon) }}">
+        @else
+            <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+        @endif
+
+        {{-- Dynamic Title --}}
+        <title>@yield('title', $siteName)</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -19,6 +34,8 @@
 
         <!-- Custom CSS -->
         <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
+
+        @stack('styles')
     </head>
     <body>
         @include('components.navbar')
@@ -34,5 +51,7 @@
         
         <!-- Custom JS -->
         <script src="{{ asset('assets/js/app.js') }}"></script>
+
+        @stack('scripts')
     </body>
 </html>

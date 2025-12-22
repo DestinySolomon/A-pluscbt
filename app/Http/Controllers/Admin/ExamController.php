@@ -786,10 +786,14 @@ class ExamController extends Controller
     /**
      * Get questions for a subject based on configuration.
      */
-  private function getQuestionsForSubject($subjectId, $questionCount, $topicIds = null, $difficultyDistribution = null)
+      private function getQuestionsForSubject($subjectId, $questionCount, $topicIds = null, $difficultyDistribution = null)
 {
     $query = Question::where('subject_id', $subjectId)
-                    ->where('is_active', true);
+                    ->where('is_active', true)
+                    // CRITICAL FIX: Eager load options BEFORE retrieving questions
+                    ->with(['options' => function($query) {
+                        $query->orderBy('option_letter');
+                    }]);
     
     // Filter by topics if specified
     if ($topicIds && is_array($topicIds)) {
@@ -798,7 +802,6 @@ class ExamController extends Controller
     
     // Apply difficulty distribution if specified
     if ($difficultyDistribution && is_array($difficultyDistribution)) {
-        // This is simplified - in production, you'd want more sophisticated logic
         $totalPercentage = array_sum($difficultyDistribution);
         if ($totalPercentage > 0) {
             $easyCount = round(($difficultyDistribution['easy'] / $totalPercentage) * $questionCount);
@@ -809,17 +812,10 @@ class ExamController extends Controller
         }
     }
     
-    // CRITICAL FIX: Load options AND use with() to eager load
+    // Get questions with options already loaded
     return $query->inRandomOrder()
                 ->limit($questionCount)
-                ->with(['options' => function($query) {
-                    $query->orderBy('option_letter');
-                }])
-                ->get()
-                ->map(function($question) {
-                    // This ensures the accessors work
-                    return $question;
-                });
+                ->get();
 }
 
     /**

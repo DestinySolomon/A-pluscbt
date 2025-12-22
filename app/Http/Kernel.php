@@ -39,4 +39,10 @@ class Kernel extends HttpKernel
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
     ];
+
+
+    protected $routeMiddleware = [
+    // ... other middleware
+    'maintenance' => \App\Http\Middleware\CheckMaintenance::class,
+];
 }

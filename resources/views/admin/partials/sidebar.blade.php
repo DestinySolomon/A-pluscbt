@@ -1,7 +1,18 @@
+@php
+    $logo = App\Models\Setting::get('logo');
+    $siteName = App\Models\Setting::get('site_name', 'A-plus CBT');
+@endphp
+
 <aside class="admin-sidebar">
     <div class="sidebar-header">
-        <div class="sidebar-logo">A+</div>
-        <div class="sidebar-brand">A-plus CBT Admin</div>
+        @if($logo && Storage::disk('public')->exists($logo))
+            <div class="sidebar-logo-image">
+                <img src="{{ asset('storage/' . $logo) }}" alt="{{ $siteName }} Logo">
+            </div>
+        @else
+            <div class="sidebar-logo">A+</div>
+        @endif
+        <div class="sidebar-brand">{{ $siteName }} Admin</div>
     </div>
     
     <div class="sidebar-menu">
@@ -44,6 +55,11 @@
             <span>Results</span>
         </a>
         
+        <a href="{{ route('admin.testimonials.index') }}" class="sidebar-item {{ request()->routeIs('admin.testimonials.*') ? 'active' : '' }}">
+            <i class="ri-chat-quote-line"></i>
+            <span>Testimonials</span>
+        </a>
+        
         <div class="sidebar-divider"></div>
         
         <a href="{{ route('admin.settings') }}" class="sidebar-item {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
@@ -62,3 +78,24 @@
         </form>
     </div>
 </aside>
+
+<style>
+    /* Add this to your admin.css or in a style block */
+    .sidebar-logo-image {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 12px;
+        padding: 8px;
+        margin: 0 auto;
+    }
+    
+    .sidebar-logo-image img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+</style>

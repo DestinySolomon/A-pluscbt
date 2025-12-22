@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -24,7 +25,43 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'phone',
+        'bio',
+        'profile_image',
+        'facebook_url',
+        'twitter_url',
+        'linkedin_url',
+        'instagram_url',
+        'email_notifications',
+        'exam_notifications',
+        'result_notifications',
+        'system_notifications',
     ];
+
+    // Accessor for profile image URL
+    public function getProfileImageUrlAttribute(): ?string
+    {
+        if ($this->profile_image && Storage::disk('public')->exists($this->profile_image)) {
+            return asset('storage/' . $this->profile_image);
+        }
+        return null;
+    }
+
+    public function getInitialsAttribute(): string
+    {
+        $name = $this->name;
+        $initials = '';
+        $words = explode(' ', $name);
+        
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $initials .= strtoupper($word[0]);
+                if (strlen($initials) >= 2) break;
+            }
+        }
+        
+        return $initials ?: strtoupper(substr($this->email, 0, 2));
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -114,9 +151,6 @@ class User extends Authenticatable
         return $query->where('role', 'admin');
     }
 
-    // In app/Models/User.php
-
-
     /**
      * Scope for student users.
      */
@@ -131,5 +165,43 @@ class User extends Authenticatable
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Get the notifications for the user.
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class)->latest();
+    }
+
+    /**
+     * Get unread notifications for the user.
+     */
+    public function unreadNotifications(): HasMany
+    {
+        return $this->notifications()->unread();
+    }
+
+    /**
+     * Get unread notifications count.
+     */
+    public function getUnreadNotificationsCountAttribute(): int
+    {
+        return $this->unreadNotifications()->count();
+    }
+
+    /**
+     * Create a notification for the user.
+     */
+    public function notify(string $type, string $title, string $message, ?array $data = null, ?string $link = null): Notification
+    {
+        return $this->notifications()->create([
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'data' => $data,
+            'link' => $link,
+        ]);
     }
 }

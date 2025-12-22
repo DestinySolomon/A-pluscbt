@@ -3,7 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Admin Dashboard - A-plus CBT')</title>
+    
+    {{-- Dynamic Favicon --}}
+    @php
+        $favicon = App\Models\Setting::get('favicon');
+        $siteName = App\Models\Setting::get('site_name', 'A-plus CBT');
+    @endphp
+    
+    @if($favicon && Storage::disk('public')->exists($favicon))
+        <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $favicon) }}">
+    @else
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    @endif
+    
+    {{-- Dynamic Title --}}
+    <title>@yield('title', 'Admin Dashboard') - {{ $siteName }}</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -88,16 +102,18 @@
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+     <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom Admin JS -->
     <script src="{{ asset('assets/js/admin.js') }}"></script>
     
     @stack('scripts')
 
-    <!-- Floating Home Button -->
-<!-- Floating Home Button to Public Site -->
-<a href="{{ url('/') }}" class="floating-home-btn" title="Back to Home Page">
-    <i class="ri-home-line"></i>
-</a>
+    <!-- Floating Home Button to Public Site -->
+    <a href="{{ url('/') }}" class="floating-home-btn" title="Back to Home Page">
+        <i class="ri-home-line"></i>
+    </a>
 </body>
 </html>
