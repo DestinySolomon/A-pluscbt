@@ -117,4 +117,34 @@ class Notification extends Model
     {
         return $this->created_at->diffForHumans();
     }
+
+
+    /**
+ * Get color as RGB string.
+ */
+public function getColorRgbAttribute()
+{
+    $colors = [
+        'exam' => '20, 184, 166',
+        'result' => '16, 185, 129',
+        'system' => '99, 102, 241',
+        'user' => '139, 92, 246',
+        'question' => '245, 158, 11',
+        'warning' => '249, 115, 22',
+        'success' => '16, 185, 129',
+        'info' => '59, 130, 246',
+    ];
+
+    return $colors[$this->type] ?? '107, 114, 128';
+}
+
+/**
+ * Get color as HEX string (alias for color attribute).
+ */
+public function getColorHexAttribute()
+{
+    return $this->color; // Use the existing color attribute
+}
+
+    
 }

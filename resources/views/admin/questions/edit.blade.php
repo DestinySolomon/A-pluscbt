@@ -12,7 +12,7 @@
 
 @section('content')
 <div class="admin-card">
-    <form action="{{ route('admin.questions.update', $question) }}" method="POST" id="questionForm" enctype="multipart/form-data">
+    <form action="{{ route('admin.questions.update', $question) }}" method="POST" id="questionForm" enctype="multipart/form-data" novalidate>
         @csrf
         @method('PUT')
         
@@ -71,8 +71,7 @@
                                 <textarea name="question_text" 
                                           id="question_text" 
                                           class="form-control @error('question_text') is-invalid @enderror" 
-                                          rows="4" 
-                                          required>{{ old('question_text', $question->question_text) }}</textarea>
+                                          rows="4">{{ old('question_text', $question->question_text) }}</textarea>
                                 @error('question_text')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror>
@@ -182,11 +181,12 @@
                 <!-- Options Section -->
                 <div class="admin-card mb-4">
                     <div class="card-header">
-                        <h6 class="mb-0">Options (JAMB Style - 4 Options Required)</h6>
+                        <h6 class="mb-0">Options (JAMB Style - 5 Options Required)</h6> <!-- CHANGED FROM 4 to 5 -->
                     </div>
                     <div class="card-body">
                         @php
-                            $optionLetters = ['A', 'B', 'C', 'D'];
+                            // CHANGED FROM ['A', 'B', 'C', 'D'] to ['A', 'B', 'C', 'D', 'E']
+                            $optionLetters = ['A', 'B', 'C', 'D', 'E'];
                             $options = $question->options->keyBy('option_letter');
                             $oldOptions = old('options', []);
                         @endphp
@@ -488,8 +488,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Image preview for option images
-    @foreach($optionLetters as $index => $letter)
+    // Image preview for option images - UPDATED FOR 5 OPTIONS
+    @foreach(['A', 'B', 'C', 'D', 'E'] as $index => $letter)
     $('#option_image_{{ $index }}').change(function() {
         const file = this.files[0];
         const preview = $('#optionPreview_{{ $index }}');
@@ -514,38 +514,80 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('questionForm');
     if (form) {
         form.addEventListener('submit', function(e) {
-            const subjectId = document.getElementById('subject_id').value;
-            const questionText = tinymce.get('question_text').getContent({format: 'text'}).trim();
-            const difficulty = document.getElementById('difficulty').value;
+            e.preventDefault(); // Prevent default form submission immediately
+            
+            // CRITICAL: Sync TinyMCE content back to textarea before validation
+            if (tinymce.get('question_text')) {
+                tinymce.triggerSave();
+            }
+            
+            const subjectId = document.getElementById('subject_id').value.trim();
+            const questionTextArea = document.getElementById('question_text');
+            const questionText = questionTextArea.value.trim();
             const correctOption = document.querySelector('input[name="correct_option"]:checked');
             
             // Check required fields
-            if (!subjectId || !questionText || !difficulty || !correctOption) {
-                e.preventDefault();
-                alert('Please fill in all required fields (Subject, Question Text, Difficulty, and select Correct Answer).');
+            if (!subjectId) {
+                alert('Please select a subject.');
+                document.getElementById('subject_id').focus();
+                return false;
+            }
+            
+            if (!questionText) {
+                alert('Please enter the question text.');
+                return false;
+            }
+            
+            if (!correctOption) {
+                alert('Please select the correct answer option.');
                 return false;
             }
             
             // Check all options have text
             let allOptionsFilled = true;
-            @foreach($optionLetters as $index => $letter)
-            const optionText{{ $index }} = document.getElementById('option_text_{{ $index }}').value.trim();
-            if (!optionText{{ $index }}) {
-                allOptionsFilled = false;
+            let emptyOptionIndex = -1;
+            for (let i = 0; i < 5; i++) {
+                const optionText = document.getElementById('option_text_' + i).value.trim();
+                if (!optionText) {
+                    allOptionsFilled = false;
+                    emptyOptionIndex = i;
+                    break;
+                }
             }
-            @endforeach
             
             if (!allOptionsFilled) {
-                e.preventDefault();
-                alert('Please fill in text for all 4 options (A, B, C, D).');
+                const letters = ['A', 'B', 'C', 'D', 'E'];
+                alert(`Please fill in option ${letters[emptyOptionIndex]}. All 5 options are required.`);
+                document.getElementById('option_text_' + emptyOptionIndex).focus();
                 return false;
             }
             
+            // All validation passed, now submit the form
             // Show loading state
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<i class="ri-loader-4-line spin me-2"></i> Updating...';
             submitBtn.disabled = true;
+            
+            // Enable the form to actually submit
+            form.removeEventListener('submit', arguments.callee);
+            
+            // Set a timer to re-enable button if something goes wrong
+            const enableButtonTimeout = setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                alert('Form submission took too long. Please check your connection and try again.');
+            }, 30000); // 30 seconds timeout
+            
+            // Listen for page unload (successful submission)
+            const unloadHandler = () => {
+                clearTimeout(enableButtonTimeout);
+                window.removeEventListener('beforeunload', unloadHandler);
+            };
+            window.addEventListener('beforeunload', unloadHandler);
+            
+            // Submit the form
+            form.submit();
         });
     }
 });

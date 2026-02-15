@@ -13,10 +13,9 @@ class Question extends Model
 
     protected $fillable = [
         'subject_id',
-        'topic_id',
+        'topic_id', // Now nullable
         'question_text',
         'image_path',
-        'difficulty',
         'marks',
         'time_estimate',
         'explanation',
@@ -62,6 +61,12 @@ class Question extends Model
         return $this->options->firstWhere('option_letter', 'D')->option_text ?? null;
     }
 
+    // ADD THIS NEW ACCESSOR FOR OPTION E
+    public function getOptionEAttribute()
+    {
+        return $this->options->firstWhere('option_letter', 'E')->option_text ?? null;
+    }
+
     public function getCorrectOptionAttribute()
     {
         return $this->options->where('is_correct', true)->first()->option_letter ?? null;
@@ -101,7 +106,7 @@ class Question extends Model
     }
 
     /**
-     * Get options ordered by letter (A, B, C, D).
+     * Get options ordered by letter (A, B, C, D, E).
      */
     public function getOrderedOptionsAttribute()
     {
@@ -136,11 +141,27 @@ class Question extends Model
     }
 
     /**
-     * Scope for questions by difficulty.
+     * Scope for random questions (for exam generation).
      */
-    public function scopeByDifficulty($query, $difficulty)
+    public function scopeRandom($query, $limit = 50)
     {
-        return $query->where('difficulty', $difficulty);
+        return $query->inRandomOrder()->limit($limit);
+    }
+
+    /**
+     * Scope for questions by subject.
+     */
+    public function scopeBySubject($query, $subjectId)
+    {
+        return $query->where('subject_id', $subjectId);
+    }
+
+    /**
+     * Scope for questions by topic.
+     */
+    public function scopeByTopic($query, $topicId)
+    {
+        return $query->where('topic_id', $topicId);
     }
 
     /**
@@ -183,5 +204,25 @@ class Question extends Model
     public function getAnswerInAttempt(ExamAttempt $attempt)
     {
         return $attempt->answers()->where('question_id', $this->id)->first();
+    }
+
+    /**
+     * Generate random exam questions.
+     */
+    public static function generateExamQuestions($subjectId, $topicIds = null, $limit = 50)
+    {
+        $query = self::where('subject_id', $subjectId)
+                    ->where('is_active', true);
+        
+        if ($topicIds) {
+            $query->whereIn('topic_id', $topicIds);
+        }
+        
+        return $query->inRandomOrder()
+                    ->with(['options' => function($query) {
+                        $query->orderBy('option_letter');
+                    }])
+                    ->limit($limit)
+                    ->get();
     }
 }

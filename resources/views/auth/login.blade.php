@@ -4,11 +4,6 @@
 
 @section('content')
 <div class="text-center mb-4">
-    <div class="guest-logo mb-3">
-        <a href="{{ url('/') }}">
-            <img src="{{ asset('images/logo.png') }}" alt="A-plus CBT Logo" height="40">
-        </a>
-    </div>
     
     <!-- Role Selection Tabs -->
     <div class="role-selection mb-4">

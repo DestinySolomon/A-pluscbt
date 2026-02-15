@@ -272,7 +272,56 @@
                     Showing {{ $questions->firstItem() }} to {{ $questions->lastItem() }} of {{ $questions->total() }} questions
                 </div>
                 <div>
-                    {{ $questions->withQueryString()->links() }}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <!-- Previous Page Link -->
+                            @if($questions->onFirstPage())
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="ri-arrow-left-s-line"></i>
+                                </span>
+                            </li>
+                            @else
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $questions->previousPageUrl() }}" aria-label="Previous">
+                                    <i class="ri-arrow-left-s-line"></i>
+                                </a>
+                            </li>
+                            @endif
+
+                            <!-- Pagination Elements -->
+                            @foreach ($questions->getUrlRange(1, $questions->lastPage()) as $page => $url)
+                                @if($page == $questions->currentPage())
+                                <li class="page-item active" aria-current="page">
+                                    <span class="page-link">{{ $page }}</span>
+                                </li>
+                                @elseif($page == 1 || $page == $questions->lastPage() || ($page >= $questions->currentPage() - 2 && $page <= $questions->currentPage() + 2))
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                </li>
+                                @elseif(($page == $questions->currentPage() - 3 && $questions->currentPage() > 4) || ($page == $questions->currentPage() + 3 && $questions->currentPage() < $questions->lastPage() - 3))
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                @endif
+                            @endforeach
+
+                            <!-- Next Page Link -->
+                            @if($questions->hasMorePages())
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $questions->nextPageUrl() }}" aria-label="Next">
+                                    <i class="ri-arrow-right-s-line"></i>
+                                </a>
+                            </li>
+                            @else
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="ri-arrow-right-s-line"></i>
+                                </span>
+                            </li>
+                            @endif
+                        </ul>
+                    </nav>
                 </div>
             </div>
             @endif
@@ -305,7 +354,7 @@
                     <div class="mb-3">
                         <label for="import_topic_id" class="form-label">Topic (Optional)</label>
                         <select name="topic_id" id="import_topic_id" class="form-select" disabled>
-                            <option value="">Select Topic</option>
+                            <option value="">Select Topic (Optional)</option>
                         </select>
                     </div>
                     
@@ -594,6 +643,49 @@ $(document).ready(function() {
     height: 18px;
 }
 
+/* Improved Pagination Styling */
+.pagination {
+    margin-bottom: 0;
+}
+
+.page-link {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    transition: all 0.2s;
+}
+
+.page-link:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+    border-color: #dee2e6;
+}
+
+.page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+.page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+/* Compact arrow icons */
+.page-link i {
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+/* Pagination spacing */
+.pagination li:not(:first-child) {
+    margin-left: 0.25rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .table-actions {
@@ -628,6 +720,17 @@ $(document).ready(function() {
     .col-md-3, .col-md-2 {
         margin-bottom: 0.5rem;
     }
+    
+    /* Adjust pagination for mobile */
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .pagination {
+        justify-content: center;
+    }
 }
 
 @media (max-width: 576px) {
@@ -647,6 +750,20 @@ $(document).ready(function() {
     .page-actions .dropdown .btn-admin {
         width: 100%;
         justify-content: center;
+    }
+    
+    /* More compact pagination on very small screens */
+    .page-link {
+        padding: 0.15rem 0.35rem;
+        font-size: 0.8rem;
+    }
+    
+    .page-link i {
+        font-size: 14px;
+    }
+    
+    .pagination li:not(:first-child) {
+        margin-left: 0.15rem;
     }
 }
 </style>

@@ -23,7 +23,6 @@ class QuestionController extends Controller
         // Get filter parameters
         $subjectId = $request->get('subject_id');
         $topicId = $request->get('topic_id');
-        $difficulty = $request->get('difficulty');
         $status = $request->get('status');
         $search = $request->get('search');
         
@@ -39,10 +38,6 @@ class QuestionController extends Controller
             if ($topicId) {
                 $query->where('topic_id', $topicId);
             }
-        }
-        
-        if ($difficulty) {
-            $query->where('difficulty', $difficulty);
         }
         
         if ($status !== null) {
@@ -89,22 +84,21 @@ class QuestionController extends Controller
         // Validate main question data
         $validator = Validator::make($request->all(), [
             'subject_id' => 'required|exists:subjects,id',
-            'topic_id' => 'nullable|exists:topics,id',
+            'topic_id' => 'nullable|exists:topics,id', // Changed to nullable
             'question_text' => 'required|string|min:10|max:5000',
             'question_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'difficulty' => 'required|in:easy,medium,hard',
             'marks' => 'required|integer|min:1|max:10',
             'time_estimate' => 'required|integer|min:10|max:300',
             'explanation' => 'nullable|string|max:2000',
             'is_active' => 'boolean',
             
-            // Options validation
-            'options' => 'required|array|size:4',
+            // Options validation - 5 options for JAMB
+            'options' => 'required|array|size:5',
             'options.*.text' => 'required|string|max:1000',
             'options.*.image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:1024',
-            'correct_option' => 'required|in:0,1,2,3',
+            'correct_option' => 'required|in:0,1,2,3,4',
         ], [
-            'options.size' => 'Exactly 4 options are required for JAMB questions.',
+            'options.size' => 'Exactly 5 options are required for JAMB questions.',
             'correct_option.required' => 'Please select the correct answer.',
         ]);
         
@@ -129,15 +123,14 @@ class QuestionController extends Controller
                 'topic_id' => $request->topic_id,
                 'question_text' => $request->question_text,
                 'image_path' => $imagePath,
-                'difficulty' => $request->difficulty,
                 'marks' => $request->marks,
                 'time_estimate' => $request->time_estimate,
                 'explanation' => $request->explanation,
                 'is_active' => $request->boolean('is_active'),
             ]);
             
-            // Create options (A, B, C, D)
-            $optionLetters = ['A', 'B', 'C', 'D'];
+            // Create options (A, B, C, D, E)
+            $optionLetters = ['A', 'B', 'C', 'D', 'E'];
             foreach ($optionLetters as $index => $letter) {
                 $optionImagePath = null;
                 
@@ -215,22 +208,21 @@ class QuestionController extends Controller
         // Validate main question data
         $validator = Validator::make($request->all(), [
             'subject_id' => 'required|exists:subjects,id',
-            'topic_id' => 'nullable|exists:topics,id',
+            'topic_id' => 'nullable|exists:topics,id', // Changed to nullable
             'question_text' => 'required|string|min:10|max:5000',
             'question_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'difficulty' => 'required|in:easy,medium,hard',
             'marks' => 'required|integer|min:1|max:10',
             'time_estimate' => 'required|integer|min:10|max:300',
             'explanation' => 'nullable|string|max:2000',
             'is_active' => 'boolean',
             
-            // Options validation
-            'options' => 'required|array|size:4',
+            // Options validation - 5 options for JAMB
+            'options' => 'required|array|size:5',
             'options.*.text' => 'required|string|max:1000',
             'options.*.image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:1024',
-            'correct_option' => 'required|in:0,1,2,3',
+            'correct_option' => 'required|in:0,1,2,3,4',
         ], [
-            'options.size' => 'Exactly 4 options are required for JAMB questions.',
+            'options.size' => 'Exactly 5 options are required for JAMB questions.',
             'correct_option.required' => 'Please select the correct answer.',
         ]);
         
@@ -266,15 +258,14 @@ class QuestionController extends Controller
                 'topic_id' => $request->topic_id,
                 'question_text' => $request->question_text,
                 'image_path' => $imagePath,
-                'difficulty' => $request->difficulty,
                 'marks' => $request->marks,
                 'time_estimate' => $request->time_estimate,
                 'explanation' => $request->explanation,
                 'is_active' => $request->boolean('is_active'),
             ]);
             
-            // Update options
-            $optionLetters = ['A', 'B', 'C', 'D'];
+            // Update options (A, B, C, D, E)
+            $optionLetters = ['A', 'B', 'C', 'D', 'E'];
             foreach ($optionLetters as $index => $letter) {
                 $option = $question->options()->where('option_letter', $letter)->first();
                 
@@ -298,6 +289,21 @@ class QuestionController extends Controller
                     }
                     
                     $option->update([
+                        'option_text' => $request->input("options.{$index}.text"),
+                        'image_path' => $optionImagePath,
+                        'is_correct' => $request->correct_option == $index,
+                        'order' => $index,
+                    ]);
+                } else {
+                    // Create missing option (for existing questions that only have 4 options)
+                    $optionImagePath = null;
+                    if ($request->hasFile("options.{$index}.image")) {
+                        $optionImagePath = $request->file("options.{$index}.image")->store('options', 'public');
+                    }
+                    
+                    Option::create([
+                        'question_id' => $question->id,
+                        'option_letter' => $letter,
                         'option_text' => $request->input("options.{$index}.text"),
                         'image_path' => $optionImagePath,
                         'is_correct' => $request->correct_option == $index,

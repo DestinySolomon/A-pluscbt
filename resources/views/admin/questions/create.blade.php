@@ -11,7 +11,7 @@
 
 @section('content')
 <div class="admin-card">
-    <form action="{{ route('admin.questions.store') }}" method="POST" id="questionForm" enctype="multipart/form-data">
+    <form action="{{ route('admin.questions.store') }}" method="POST" id="questionForm" enctype="multipart/form-data" novalidate>
         @csrf
         
         <div class="row">
@@ -45,9 +45,8 @@
                                 <label for="topic_id" class="form-label">Topic (Optional)</label>
                                 <select name="topic_id" 
                                         id="topic_id" 
-                                        class="form-select @error('topic_id') is-invalid @enderror"
-                                        {{ old('subject_id') ? '' : 'disabled' }}>
-                                    <option value="">Select a Topic</option>
+                                        class="form-select @error('topic_id') is-invalid @enderror">
+                                    <option value="">No Topic</option>
                                     @if(old('subject_id'))
                                         @php
                                             $topics = \App\Models\Topic::where('subject_id', old('subject_id'))
@@ -64,6 +63,7 @@
                                 @error('topic_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <small class="text-muted">Leave empty for general questions</small>
                             </div>
                             
                             <div class="col-12 mb-3">
@@ -72,7 +72,6 @@
                                           id="question_text" 
                                           class="form-control @error('question_text') is-invalid @enderror" 
                                           rows="4" 
-                            
                                           placeholder="Enter the question here...">{{ old('question_text') }}</textarea>
                                 @error('question_text')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -97,23 +96,7 @@
                                 </div>
                             </div>
                             
-                            <div class="col-md-4 mb-3">
-                                <label for="difficulty" class="form-label">Difficulty *</label>
-                                <select name="difficulty" 
-                                        id="difficulty" 
-                                        class="form-select @error('difficulty') is-invalid @enderror" 
-                                        required>
-                                    <option value="">Select Difficulty</option>
-                                    <option value="easy" {{ old('difficulty') == 'easy' ? 'selected' : '' }}>Easy</option>
-                                    <option value="medium" {{ old('difficulty') == 'medium' ? 'selected' : '' }}>Medium</option>
-                                    <option value="hard" {{ old('difficulty') == 'hard' ? 'selected' : '' }}>Hard</option>
-                                </select>
-                                @error('difficulty')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="marks" class="form-label">Marks *</label>
                                 <input type="number" 
                                        name="marks" 
@@ -129,7 +112,7 @@
                                 <small class="text-muted">Score for this question (1-10)</small>
                             </div>
                             
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="time_estimate" class="form-label">Time Estimate (seconds) *</label>
                                 <input type="number" 
                                        name="time_estimate" 
@@ -154,7 +137,7 @@
                                           placeholder="Explain why the correct answer is right...">{{ old('explanation') }}</textarea>
                                 @error('explanation')
                                     <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror>
+                                @enderror
                                 <small class="text-muted">Help students understand the reasoning</small>
                             </div>
                         </div>
@@ -164,17 +147,18 @@
                 <!-- Options Section -->
                 <div class="admin-card mb-4">
                     <div class="card-header">
-                        <h6 class="mb-0">Options (JAMB Style - 4 Options Required)</h6>
+                        <h6 class="mb-0">Options (JAMB Style - 5 Options Required)</h6>
                     </div>
                     <div class="card-body">
                         <div class="alert alert-info">
                             <i class="ri-information-line me-2"></i>
-                            <strong>JAMB Format:</strong> 4 options (A, B, C, D) with exactly 1 correct answer.
+                            <strong>JAMB Format:</strong> 5 options (A, B, C, D, E) with exactly 1 correct answer.
                         </div>
                         
                         @php
-                            $optionLetters = ['A', 'B', 'C', 'D'];
+                            $optionLetters = ['A', 'B', 'C', 'D', 'E'];
                             $oldOptions = old('options', [
+                                ['text' => '', 'image' => null],
                                 ['text' => '', 'image' => null],
                                 ['text' => '', 'image' => null],
                                 ['text' => '', 'image' => null],
@@ -207,7 +191,7 @@
                                               id="option_text_{{ $index }}" 
                                               class="form-control @error('options.' . $index . '.text') is-invalid @enderror" 
                                               rows="2" 
-                                            
+                                              required 
                                               placeholder="Enter option {{ $letter }} text...">{{ $oldOptions[$index]['text'] ?? '' }}</textarea>
                                     @error('options.' . $index . '.text')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -223,7 +207,7 @@
                                            accept="image/*">
                                     @error('options.' . $index . '.image')
                                         <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror>
+                                    @enderror
                                     
                                     <div id="optionPreview_{{ $index }}" class="mt-2" style="display: none;">
                                         <img id="optionPreviewImage_{{ $index }}" src="#" alt="Preview" class="img-thumbnail" style="max-width: 100px; max-height: 80px;">
@@ -262,6 +246,11 @@
                                 </label>
                             </div>
                             <small class="text-muted">Inactive questions won't be available in exams</small>
+                        </div>
+                        
+                        <div class="alert alert-success">
+                            <i class="ri-check-line me-2"></i>
+                            <strong>Simplified:</strong> No difficulty levels, topics are optional.
                         </div>
                         
                         <div class="alert alert-warning">
@@ -421,9 +410,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     $('#topic_id').select2({
-        placeholder: 'Select a Topic (Optional)',
-        allowClear: true,
-        disabled: true
+        placeholder: 'No Topic (Optional)',
+        allowClear: true
     });
     
     // Load topics when subject changes
@@ -432,15 +420,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const topicSelect = $('#topic_id');
         
         if (subjectId) {
-            topicSelect.prop('disabled', false);
-            
             // Load topics via AJAX
             $.ajax({
                 url: '{{ route("admin.questions.get-topics-by-subject", ":subjectId") }}'.replace(':subjectId', subjectId),
                 method: 'GET',
                 success: function(topics) {
                     topicSelect.empty();
-                    topicSelect.append('<option value="">Select a Topic (Optional)</option>');
+                    topicSelect.append('<option value="">No Topic</option>');
                     
                     topics.forEach(function(topic) {
                         topicSelect.append(`<option value="${topic.id}">${topic.name}</option>`);
@@ -448,14 +434,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Re-initialize Select2
                     topicSelect.select2({
-                        placeholder: 'Select a Topic (Optional)',
+                        placeholder: 'No Topic (Optional)',
+                        allowClear: true
+                    });
+                },
+                error: function() {
+                    topicSelect.empty();
+                    topicSelect.append('<option value="">No Topic</option>');
+                    topicSelect.select2({
+                        placeholder: 'No Topic (Optional)',
                         allowClear: true
                     });
                 }
             });
         } else {
-            topicSelect.prop('disabled', true).empty();
-            topicSelect.append('<option value="">Select a Topic (Optional)</option>');
+            topicSelect.empty();
+            topicSelect.append('<option value="">No Topic</option>');
+            topicSelect.select2({
+                placeholder: 'No Topic (Optional)',
+                allowClear: true
+            });
         }
     });
     
@@ -480,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Image preview for option images
-    @foreach($optionLetters as $index => $letter)
+    @foreach(['A', 'B', 'C', 'D', 'E'] as $index => $letter)
     $('#option_image_{{ $index }}').change(function() {
         const file = this.files[0];
         const preview = $('#optionPreview_{{ $index }}');
@@ -503,8 +501,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update preview as user types
     function updatePreview() {
-        const questionText = tinymce.get('question_text').getContent();
         const preview = $('#previewContent');
+        
+        // Check if TinyMCE is initialized before trying to get content
+        const editor = tinymce.get('question_text');
+        let questionText = '';
+        
+        if (editor) {
+            questionText = editor.getContent();
+        } else {
+            questionText = document.getElementById('question_text').value;
+        }
         
         if (questionText.trim()) {
             preview.html(questionText);
@@ -516,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Update preview on option text changes
-    @foreach($optionLetters as $index => $letter)
+    @foreach(['A', 'B', 'C', 'D', 'E'] as $index => $letter)
     $('#option_text_{{ $index }}').on('input', function() {
         updatePreview();
     });
@@ -525,47 +532,81 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form validation
     const form = document.getElementById('questionForm');
     if (form) {
-          tinymce.triggerSave();
-
         form.addEventListener('submit', function(e) {
-            const subjectId = document.getElementById('subject_id').value;
-            const questionText = tinymce.get('question_text').getContent({format: 'text'}).trim();
-            const difficulty = document.getElementById('difficulty').value;
+            e.preventDefault(); // Prevent default form submission immediately
+            
+            // CRITICAL: Sync TinyMCE content back to textarea before validation
+            if (tinymce.get('question_text')) {
+                tinymce.triggerSave();
+            }
+            
+            const subjectId = document.getElementById('subject_id').value.trim();
+            const questionTextArea = document.getElementById('question_text');
+            const questionText = questionTextArea.value.trim();
             const correctOption = document.querySelector('input[name="correct_option"]:checked');
             
             // Check required fields
-            if (!subjectId || !questionText || !difficulty || !correctOption) {
-                e.preventDefault();
-                alert('Please fill in all required fields (Subject, Question Text, Difficulty, and select Correct Answer).');
+            if (!subjectId) {
+                alert('Please select a subject.');
+                document.getElementById('subject_id').focus();
+                return false;
+            }
+            
+            if (!questionText) {
+                alert('Please enter the question text.');
+                return false;
+            }
+            
+            if (!correctOption) {
+                alert('Please select the correct answer option.');
                 return false;
             }
             
             // Check all options have text
             let allOptionsFilled = true;
-            @foreach($optionLetters as $index => $letter)
-            const optionText{{ $index }} = document.getElementById('option_text_{{ $index }}').value.trim();
-            if (!optionText{{ $index }}) {
-                allOptionsFilled = false;
+            let emptyOptionIndex = -1;
+            for (let i = 0; i < 5; i++) {
+                const optionText = document.getElementById('option_text_' + i).value.trim();
+                if (!optionText) {
+                    allOptionsFilled = false;
+                    emptyOptionIndex = i;
+                    break;
+                }
             }
-            @endforeach
             
             if (!allOptionsFilled) {
-                e.preventDefault();
-                alert('Please fill in text for all 4 options (A, B, C, D).');
+                const letters = ['A', 'B', 'C', 'D', 'E'];
+                alert(`Please fill in option ${letters[emptyOptionIndex]}. All 5 options are required.`);
+                document.getElementById('option_text_' + emptyOptionIndex).focus();
                 return false;
             }
             
+            // All validation passed, now submit the form
             // Show loading state
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<i class="ri-loader-4-line spin me-2"></i> Saving...';
             submitBtn.disabled = true;
             
-            // Re-enable button after 10 seconds (in case submission fails)
-            setTimeout(() => {
+            // Enable the form to actually submit
+            form.removeEventListener('submit', arguments.callee);
+            
+            // Set a timer to re-enable button if something goes wrong
+            const enableButtonTimeout = setTimeout(() => {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
-            }, 10000);
+                alert('Form submission took too long. Please check your connection and try again.');
+            }, 30000); // 30 seconds timeout
+            
+            // Listen for page unload (successful submission)
+            const unloadHandler = () => {
+                clearTimeout(enableButtonTimeout);
+                window.removeEventListener('beforeunload', unloadHandler);
+            };
+            window.addEventListener('beforeunload', unloadHandler);
+            
+            // Submit the form
+            form.submit();
         });
     }
 });
