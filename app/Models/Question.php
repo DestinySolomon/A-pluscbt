@@ -225,4 +225,53 @@ class Question extends Model
                     ->limit($limit)
                     ->get();
     }
+
+
+    // Add these relationships to your existing Question model
+
+/**
+ * Get the passage this question belongs to (if any).
+ */
+public function passage(): BelongsTo
+{
+    return $this->belongsTo(Passage::class);
+}
+
+/**
+ * Check if this question belongs to a passage.
+ */
+public function belongsToPassage(): bool
+{
+    return !is_null($this->passage_id);
+}
+
+/**
+ * Get the next question in the same passage.
+ */
+public function nextInPassage()
+{
+    if (!$this->belongsToPassage()) {
+        return null;
+    }
+    
+    return $this->passage->questions()
+        ->where('question_number', '>', $this->question_number)
+        ->orderBy('question_number')
+        ->first();
+}
+
+/**
+ * Get the previous question in the same passage.
+ */
+public function previousInPassage()
+{
+    if (!$this->belongsToPassage()) {
+        return null;
+    }
+    
+    return $this->passage->questions()
+        ->where('question_number', '<', $this->question_number)
+        ->orderByDesc('question_number')
+        ->first();
+}
 }

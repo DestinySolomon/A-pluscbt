@@ -7,6 +7,7 @@ use App\Models\Question;
 use App\Models\Subject;
 use App\Models\Topic;
 use App\Models\Option;
+use App\Models\Passage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -456,4 +457,30 @@ class QuestionController extends Controller
                            ->with('error', 'Error performing bulk action: ' . $e->getMessage());
         }
     }
+
+    /**
+ * Get passages by subject for AJAX requests.
+ */
+public function getPassagesBySubject($subjectId)
+{
+    $passages = Passage::where('subject_id', $subjectId)
+        ->where('is_active', true)
+        ->orderBy('title')
+        ->get(['id', 'title', 'content']);
+    
+    return response()->json($passages);
+}
+
+/**
+ * Get the next available question number for a passage.
+ */
+public function getNextQuestionNumber($passageId)
+{
+    $passage = Passage::findOrFail($passageId);
+    $lastQuestion = $passage->questions()->orderByDesc('question_number')->first();
+    
+    return response()->json([
+        'next_number' => $lastQuestion ? $lastQuestion->question_number + 1 : 1
+    ]);
+}
 }

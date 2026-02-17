@@ -46,6 +46,79 @@
         justify-content: center;
         z-index: 9999;
     }
+    
+    /* NEW: Passage Styles */
+    .passage-container {
+        background-color: #f8f9fa;
+        border-left: 4px solid #14b8a6;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .passage-title {
+        color: #14b8a6;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+    
+    .passage-content {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #374151;
+    }
+    
+    .passage-instruction {
+        font-style: italic;
+        color: #6b7280;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px dashed #dee2e6;
+    }
+    
+    .passage-badge {
+        display: inline-block;
+        background-color: #e5e7eb;
+        color: #4b5563;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-right: 0.5rem;
+    }
+    
+    .passage-ref-link {
+        color: #14b8a6;
+        text-decoration: none;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+    
+    .passage-ref-link:hover {
+        text-decoration: underline;
+    }
+    
+    .passage-collapsed {
+        background-color: #f0fdf4;
+        border: 1px solid #14b8a6;
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .question-passage-info {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+        font-size: 0.95rem;
+    }
+    /* END: Passage Styles */
 </style>
 @endsection
 
@@ -70,6 +143,13 @@
      style="display: none;">
 </div>
 
+<!-- NEW: Hidden passages data for JavaScript -->
+@if(isset($passages) && $passages->count() > 0)
+<div id="passagesData" style="display: none;">
+    @json($passages)
+</div>
+@endif
+
 <!-- JavaScript for exam functionality -->
 <script>
 // Exam data from server
@@ -83,6 +163,12 @@ const examData = {
     markedCount: {{ $markedCount }},
     csrfToken: '{{ csrf_token() }}'
 };
+
+// NEW: Store passages for reference
+let passagesData = {};
+@if(isset($passages) && $passages->count() > 0)
+    passagesData = @json($passages);
+@endif
 
 // State management
 let examState = {
@@ -152,6 +238,68 @@ function updateTimerDisplay() {
     $('#summaryTimer').text(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
 }
 
+// NEW: Function to display passage
+function displayPassage(question) {
+    if (!question.passage) return '';
+    
+    const passage = question.passage;
+    const isFirstQuestionInPassage = question.question_number === 1;
+    
+    if (isFirstQuestionInPassage) {
+        // Full passage display for first question
+        return `
+            <div class="passage-container" id="currentPassage">
+                <h5 class="passage-title">
+                    <i class="ri-file-text-line me-2"></i>
+                    ${passage.title || 'Comprehension Passage'}
+                </h5>
+                <div class="passage-content">
+                    ${passage.content.replace(/\n/g, '<br>')}
+                </div>
+                ${passage.instruction ? `
+                    <div class="passage-instruction">
+                        <i class="ri-questionnaire-line me-2"></i>
+                        ${passage.instruction}
+                    </div>
+                ` : ''}
+                ${passage.image_path ? `
+                    <div class="mt-3 text-center">
+                        <img src="/storage/${passage.image_path}" alt="Passage Image" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    } else {
+        // Collapsed view for subsequent questions
+        return `
+            <div class="passage-collapsed" id="currentPassage">
+                <div>
+                    <i class="ri-file-copy-line me-2 text-primary"></i>
+                    <strong>${passage.title || 'Comprehension Passage'}</strong>
+                    <span class="passage-badge ms-2">Question ${question.question_number} of ${getPassageQuestionCount(passage.id)}</span>
+                </div>
+                <a href="#" onclick="scrollToPassage(); return false;" class="passage-ref-link">
+                    <i class="ri-eye-line me-1"></i> View Passage
+                </a>
+            </div>
+        `;
+    }
+}
+
+// NEW: Helper to get passage question count
+function getPassageQuestionCount(passageId) {
+    if (!passagesData[passageId]) return 0;
+    return passagesData[passageId].questions ? passagesData[passageId].questions.length : 0;
+}
+
+// NEW: Scroll to passage function
+function scrollToPassage() {
+    const passageElement = document.getElementById('currentPassage');
+    if (passageElement) {
+        passageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 function updateQuestionDisplay() {
     if (!examState.currentQuestion) return;
     
@@ -163,6 +311,14 @@ function updateQuestionDisplay() {
     // Update question header
     $('#currentQuestionNumber').text(`Question ${questionNumber}`);
     $('#questionSubject').text(question.subject?.name || 'General');
+    
+    // NEW: Display passage if question belongs to one
+    if (question.passage) {
+        $('#passageContainer').html(displayPassage(question));
+        $('#passageContainer').show();
+    } else {
+        $('#passageContainer').hide();
+    }
     
     // Update question text
     $('#questionText').html(`<p>${question.question_text}</p>`);
@@ -181,25 +337,27 @@ function updateQuestionDisplay() {
     // Clear and load options
     $('#optionsContainer').empty();
     
-    question.options.forEach(option => {
-        const isSelected = userAnswer === option.option_letter;
-        const optionHtml = `
-            <div class="option-item">
-                <label class="option-label ${isSelected ? 'selected' : ''}" 
-                       data-question-id="${question.id}" 
-                       data-option="${option.option_letter}">
-                    <span class="option-letter">${option.option_letter}</span>
-                    <span class="option-text">${option.option_text}</span>
-                    ${option.image_path ? `
-                        <div class="mt-2">
-                            <img src="/storage/${option.image_path}" alt="Option Image" class="option-image img-fluid">
-                        </div>
-                    ` : ''}
-                </label>
-            </div>
-        `;
-        $('#optionsContainer').append(optionHtml);
-    });
+    if (question.options && question.options.length > 0) {
+        question.options.forEach(option => {
+            const isSelected = userAnswer === option.option_letter;
+            const optionHtml = `
+                <div class="option-item">
+                    <label class="option-label ${isSelected ? 'selected' : ''}" 
+                           data-question-id="${question.id}" 
+                           data-option="${option.option_letter}">
+                        <span class="option-letter">${option.option_letter}</span>
+                        <span class="option-text">${option.option_text}</span>
+                        ${option.image_path ? `
+                            <div class="mt-2">
+                                <img src="/storage/${option.image_path}" alt="Option Image" class="option-image img-fluid">
+                            </div>
+                        ` : ''}
+                    </label>
+                </div>
+            `;
+            $('#optionsContainer').append(optionHtml);
+        });
+    }
     
     // Update mark button
     $('#markForReviewBtn').html(`
@@ -218,8 +376,10 @@ function generateQuestionButtons() {
     $('#questionButtons').empty();
     
     for (let i = 0; i < examData.totalQuestions; i++) {
-        const isAnswered = false; // We'll update this after loading question data
-        const isMarked = examState.markedQuestions.includes(i + 1); // Temporary
+        // In a real implementation, you'd need to track which questions are answered
+        // This is simplified - you should enhance based on your data structure
+        const isAnswered = false; 
+        const isMarked = examState.markedQuestions.includes(i + 1);
         const isCurrent = i === examData.currentIndex;
         
         let buttonClass = 'question-btn';
@@ -443,7 +603,7 @@ function clearAnswer(questionId) {
 
 function saveTimeRemaining() {
     $.ajax({
-        url: '{{ route("user.exams.save-time", $exam->id) }}', // You'll need to create this route
+        url: '{{ route("user.exams.save-time", $exam->id) }}',
         method: 'POST',
         data: {
             time_remaining: examState.timeRemaining,
@@ -510,4 +670,102 @@ $(window).on('load', function() {
     hideLoading();
 });
 </script>
+@endsection
+
+@section('content')
+<!-- This section needs to be added to your existing layout -->
+<div class="exam-container">
+    <!-- Header with timer and controls -->
+    <div class="exam-header">
+        <!-- Your existing header code -->
+    </div>
+    
+    <!-- NEW: Passage Container -->
+    <div id="passageContainer" style="display: none;"></div>
+    
+    <!-- Question Display -->
+    <div class="question-card">
+        <div class="question-header">
+            <span id="currentQuestionNumber" class="question-number"></span>
+            <span id="questionSubject" class="question-subject"></span>
+        </div>
+        
+        <!-- Question Image -->
+        <div id="questionImageContainer" style="display: none;" class="mb-3">
+            <img id="questionImage" src="" alt="Question Image" class="img-fluid">
+        </div>
+        
+        <!-- Question Text -->
+        <div id="questionText" class="question-text mb-4"></div>
+        
+        <!-- Options Container -->
+        <div id="optionsContainer" class="options-container"></div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button id="clearSelectionBtn" class="btn btn-outline-secondary">
+                <i class="ri-eraser-line me-1"></i> Clear
+            </button>
+            <button id="markForReviewBtn" class="btn btn-outline-warning">
+                <i class="ri-flag-line me-1"></i> Mark for Review
+            </button>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="navigation-buttons">
+        <button id="prevQuestionBtn" class="btn btn-primary">
+            <i class="ri-arrow-left-line me-1"></i> Previous
+        </button>
+        <button id="nextQuestionBtn" class="btn btn-primary">
+            Next <i class="ri-arrow-right-line me-1"></i>
+        </button>
+    </div>
+    
+    <!-- Question Palette -->
+    <div class="question-palette">
+        <h5>Questions</h5>
+        <div id="questionButtons" class="question-grid"></div>
+    </div>
+    
+    <!-- Submit Button -->
+    <div class="submit-section">
+        <button id="submitExamBtn" class="btn btn-success btn-lg">
+            <i class="ri-check-double-line me-2"></i> Submit Exam
+        </button>
+    </div>
+</div>
+
+<!-- Submit Confirmation Modal -->
+<div class="modal fade" id="submitExamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Submit Exam</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to submit your exam?</p>
+                <div class="alert alert-info">
+                    <strong>Summary:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Answered: <span id="modalAnsweredCount">0</span>/<span id="modalTotalQuestions">{{ $totalQuestions }}</span></li>
+                        <li>Marked for Review: <span id="modalMarkedCount">0</span></li>
+                        <li>Unanswered: <span id="modalUnansweredCount">0</span></li>
+                    </ul>
+                </div>
+                <p class="text-warning">
+                    <i class="ri-alert-line me-1"></i>
+                    You cannot change your answers after submission.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmSubmitBtn">
+                    <i class="ri-check-double-line me-1"></i> Yes, Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

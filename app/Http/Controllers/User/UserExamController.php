@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Exam;
 use App\Models\ExamAttempt;
 use App\Models\Question;
+use App\Models\Passage;
 use App\Models\Subject;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -95,9 +96,9 @@ class UserExamController extends Controller
             'time_remaining' => $exam->duration_minutes * 60,
         ]);
         
-        // Generate questions order
-        $questions = $this->getExamQuestions($exam);
-        $attempt->questions_order = json_encode($questions->pluck('id')->toArray());
+        // Generate questions order (with passage support)
+        $questionsOrder = $this->generateQuestionsOrder($exam);
+        $attempt->questions_order = json_encode($questionsOrder);
         $attempt->save();
         
         return redirect()->route('user.exams.take', $exam->id);
@@ -110,26 +111,11 @@ class UserExamController extends Controller
     {
         $user = Auth::user();
         
-        // Get or create exam attempt
-        $attempt = ExamAttempt::firstOrCreate(
-            [
-                'user_id' => $user->id,
-                'exam_id' => $exam->id,
-                'status' => 'in_progress'
-            ],
-            [
-                'started_at' => Carbon::now(),
-                'total_questions' => $exam->total_questions,
-                'time_remaining' => $exam->duration_minutes * 60,
-                'questions_order' => $this->generateQuestionsOrder($exam),
-            ]
-        );
-        
-        // If attempt was just created or has no questions order, generate it
-        if (!$attempt->questions_order) {
-            $attempt->questions_order = $this->generateQuestionsOrder($exam);
-            $attempt->save();
-        }
+        // Get exam attempt
+        $attempt = ExamAttempt::where('user_id', $user->id)
+            ->where('exam_id', $exam->id)
+            ->where('status', 'in_progress')
+            ->firstOrFail();
         
         // Get questions for this exam
         $questions = $this->getExamQuestions($exam, $attempt);
@@ -146,6 +132,11 @@ class UserExamController extends Controller
         
         if (!$currentQuestion) {
             abort(404, 'Question not found');
+        }
+        
+        // Load passage relationship if it exists
+        if ($currentQuestion->passage_id) {
+            $currentQuestion->load('passage');
         }
         
         // Get user answers for this attempt
@@ -167,6 +158,10 @@ class UserExamController extends Controller
         // Get subjects for this exam
         $subjects = $exam->subjects()->with('subject')->get();
         
+        // Get all passages used in this exam for reference
+        $passageIds = $questions->whereNotNull('passage_id')->pluck('passage_id')->unique();
+        $passages = Passage::whereIn('id', $passageIds)->get()->keyBy('id');
+        
         return view('user.exams.take', compact(
             'exam',
             'attempt',
@@ -178,7 +173,8 @@ class UserExamController extends Controller
             'totalQuestions',
             'answeredCount',
             'markedCount',
-            'subjects'
+            'subjects',
+            'passages'
         ));
     }
     
@@ -255,8 +251,9 @@ class UserExamController extends Controller
         
         $questionId = $questionsOrder[$newIndex];
         $question = Question::with(['options' => function($query) {
-            $query->orderBy('order');
-        }])->findOrFail($questionId);
+                $query->orderBy('order');
+            }, 'passage'])
+            ->findOrFail($questionId);
         
         // Get user answer for this question
         $userAnswer = $attempt->answers()
@@ -274,6 +271,15 @@ class UserExamController extends Controller
                 'subject' => $question->subject->name ?? 'General',
                 'text' => $question->question_text,
                 'image_path' => $question->image_path,
+                'passage_id' => $question->passage_id,
+                'question_number' => $question->question_number,
+                'passage' => $question->passage ? [
+                    'id' => $question->passage->id,
+                    'title' => $question->passage->title,
+                    'content' => $question->passage->content,
+                    'instruction' => $question->passage->instruction,
+                    'image_path' => $question->passage->image_path,
+                ] : null,
                 'options' => $question->options->map(function($option) {
                     return [
                         'letter' => $option->option_letter,
@@ -339,65 +345,171 @@ class UserExamController extends Controller
     }
     
     /**
-     * Generate questions order for exam
+     * Generate questions order for exam - UPDATED to handle passages correctly
      */
     private function generateQuestionsOrder(Exam $exam)
     {
-        $questions = Question::whereHas('examSubjects', function ($query) use ($exam) {
-                $query->where('exam_id', $exam->id);
-            })
-            ->where('is_active', true)
-            ->pluck('id');
+        $subjects = $exam->subjects()->pluck('subject_id')->toArray();
         
-        // Shuffle if enabled
-        if ($exam->shuffle_questions) {
-            $questions = $questions->shuffle();
+        if (empty($subjects)) {
+            return json_encode([]);
         }
         
-        // Limit to total questions
-        $questions = $questions->take($exam->total_questions);
+        // Calculate questions per subject
+        $totalQuestions = $exam->total_questions;
+        $questionsPerSubject = floor($totalQuestions / count($subjects));
+        $remainingQuestions = $totalQuestions - ($questionsPerSubject * count($subjects));
         
-        return json_encode($questions->values()->toArray());
+        $selectedQuestionIds = [];
+        
+        foreach ($subjects as $index => $subjectId) {
+            $subjectQuestionCount = $questionsPerSubject;
+            
+            // Add remaining question to first subject
+            if ($index === 0 && $remainingQuestions > 0) {
+                $subjectQuestionCount += $remainingQuestions;
+            }
+            
+            // Get standalone questions for this subject
+            $standaloneQuery = Question::where('subject_id', $subjectId)
+                ->whereNull('passage_id')
+                ->where('is_active', true);
+            
+            $standaloneCount = $standaloneQuery->count();
+            
+            // Get passages with their questions for this subject
+            $passages = Passage::where('subject_id', $subjectId)
+                ->where('is_active', true)
+                ->with(['activeQuestions' => function($q) {
+                    $q->orderBy('question_number');
+                }])
+                ->get();
+            
+            // Calculate total questions from passages
+            $passageQuestionCount = 0;
+            $passageQuestionsMap = [];
+            
+            foreach ($passages as $passage) {
+                $questionIds = $passage->activeQuestions->pluck('id')->toArray();
+                $count = count($questionIds);
+                
+                if ($count > 0) {
+                    $passageQuestionsMap[$passage->id] = [
+                        'ids' => $questionIds,
+                        'count' => $count
+                    ];
+                    $passageQuestionCount += $count;
+                }
+            }
+            
+            $totalAvailable = $standaloneCount + $passageQuestionCount;
+            
+            if ($totalAvailable <= $subjectQuestionCount) {
+                // Not enough questions, take all available
+                // Add all standalone questions
+                $selectedQuestionIds = array_merge(
+                    $selectedQuestionIds,
+                    $standaloneQuery->pluck('id')->toArray()
+                );
+                
+                // Add all passage questions
+                foreach ($passageQuestionsMap as $passageData) {
+                    $selectedQuestionIds = array_merge(
+                        $selectedQuestionIds,
+                        $passageData['ids']
+                    );
+                }
+            } else {
+                // Need to select randomly, but respect passage integrity
+                $tempSelected = [];
+                $usedPassageIds = [];
+                
+                // First, try to include some complete passages
+                $shuffledPassages = $passages->shuffle();
+                
+                foreach ($shuffledPassages as $passage) {
+                    $passageQuestionIds = $passage->activeQuestions->pluck('id')->toArray();
+                    $passageCount = count($passageQuestionIds);
+                    
+                    if (count($tempSelected) + $passageCount <= $subjectQuestionCount) {
+                        // We can fit this entire passage
+                        $tempSelected = array_merge($tempSelected, $passageQuestionIds);
+                        $usedPassageIds[] = $passage->id;
+                    }
+                }
+                
+                // Calculate how many more questions we need
+                $neededCount = $subjectQuestionCount - count($tempSelected);
+                
+                if ($neededCount > 0) {
+                    // Get standalone questions to fill the gap
+                    $standaloneIds = $standaloneQuery
+                        ->inRandomOrder()
+                        ->limit($neededCount)
+                        ->pluck('id')
+                        ->toArray();
+                    
+                    $tempSelected = array_merge($tempSelected, $standaloneIds);
+                }
+                
+                $selectedQuestionIds = array_merge($selectedQuestionIds, $tempSelected);
+            }
+        }
+        
+        // Shuffle all questions if enabled
+        if ($exam->shuffle_questions) {
+            shuffle($selectedQuestionIds);
+        }
+        
+        // Limit to total questions (should already be limited, but just in case)
+        $selectedQuestionIds = array_slice($selectedQuestionIds, 0, $exam->total_questions);
+        
+        return $selectedQuestionIds;
     }
     
     /**
-     * Get questions for exam with options
+     * Get questions for exam with options - UPDATED to include passage data
      */
     private function getExamQuestions(Exam $exam, ExamAttempt $attempt = null)
     {
         if ($attempt && $attempt->questions_order) {
             $questionsOrder = json_decode($attempt->questions_order, true);
             
-            return Question::with(['options' => function ($query) use ($exam) {
-                    if ($exam->shuffle_options) {
-                        $query->inRandomOrder();
-                    } else {
-                        $query->orderBy('order');
-                    }
-                }, 'subject'])
+            return Question::with([
+                    'options' => function ($query) use ($exam) {
+                        if ($exam->shuffle_options) {
+                            $query->inRandomOrder();
+                        } else {
+                            $query->orderBy('order');
+                        }
+                    }, 
+                    'subject',
+                    'passage'
+                ])
                 ->whereIn('id', $questionsOrder)
                 ->get()
                 ->keyBy('id');
         }
         
         // Fallback if no attempt
-        $questions = Question::whereHas('examSubjects', function ($query) use ($exam) {
-                $query->where('exam_id', $exam->id);
-            })
-            ->with(['options' => function ($query) use ($exam) {
-                if ($exam->shuffle_options) {
-                    $query->inRandomOrder();
-                } else {
-                    $query->orderBy('order');
-                }
-            }, 'subject'])
-            ->where('is_active', true);
+        $subjects = $exam->subjects()->pluck('subject_id')->toArray();
         
-        if ($exam->shuffle_questions) {
-            $questions = $questions->inRandomOrder();
-        }
-        
-        return $questions->limit($exam->total_questions)->get()->keyBy('id');
+        return Question::whereIn('subject_id', $subjects)
+            ->with([
+                'options' => function ($query) use ($exam) {
+                    if ($exam->shuffle_options) {
+                        $query->inRandomOrder();
+                    } else {
+                        $query->orderBy('order');
+                    }
+                },
+                'subject',
+                'passage'
+            ])
+            ->where('is_active', true)
+            ->limit($exam->total_questions)
+            ->get()
+            ->keyBy('id');
     }
     
     /**

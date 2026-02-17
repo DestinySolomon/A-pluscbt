@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\AttemptController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\PassageController;
 
 Route::middleware(['auth', 'admin'])->group(function () {
    
@@ -35,6 +36,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/questions/bulk-export', [QuestionController::class, 'export'])->name('questions.export');
     Route::get('/questions/get-topics-by-subject/{subjectId}', [QuestionController::class, 'getTopicsBySubject'])->name('questions.get-topics-by-subject');
     Route::post('/questions/upload-image', [QuestionController::class, 'uploadImage'])->name('questions.upload-image');
+
+    
+     // Additional Question Routes
+     Route::get('/questions/get-passages-by-subject/{subjectId}', [QuestionController::class, 'getPassagesBySubject'])->name('questions.get-passages-by-subject');
+     Route::get('/questions/get-next-question-number/{passageId}', [QuestionController::class, 'getNextQuestionNumber'])->name('questions.get-next-question-number');
 
     // Exams
     Route::resource('exams', ExamController::class);
@@ -76,6 +82,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
      Route::resource('results', ResultController::class);
 
 
+
      // Testimonials Management
 Route::resource('testimonials', TestimonialController::class);
 Route::post('/testimonials/{testimonial}/approve', [TestimonialController::class, 'approve'])->name('testimonials.approve');
@@ -99,6 +106,30 @@ Route::prefix('profile')->group(function () {
     Route::put('/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
  
+});
+
+
+
+// Passages Management
+Route::prefix('passages')->name('passages.')->group(function () {
+    Route::get('/', [PassageController::class, 'index'])->name('index');
+    Route::get('/create', [PassageController::class, 'create'])->name('create');
+    Route::post('/', [PassageController::class, 'store'])->name('store');
+    Route::get('/{passage}', [PassageController::class, 'show'])->name('show');
+    Route::get('/{passage}/edit', [PassageController::class, 'edit'])->name('edit');
+    Route::put('/{passage}', [PassageController::class, 'update'])->name('update');
+    Route::delete('/{passage}', [PassageController::class, 'destroy'])->name('destroy');
+    
+    // Custom routes
+    Route::post('/{passage}/toggle-status', [PassageController::class, 'toggleStatus'])->name('toggle-status');
+    Route::post('/{passage}/add-question', [PassageController::class, 'addQuestion'])->name('add-question');
+    Route::get('/{passage}/next-question-number', [PassageController::class, 'getNextQuestionNumber'])->name('next-question-number');
+    
+    // AJAX routes
+    Route::get('/get-topics-by-subject/{subjectId}', [PassageController::class, 'getTopicsBySubject'])->name('get-topics-by-subject');
+    
+    // Bulk actions
+    Route::post('/bulk-action', [PassageController::class, 'bulkAction'])->name('bulk-action');
 });
 
 
