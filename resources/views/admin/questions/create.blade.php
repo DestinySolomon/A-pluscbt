@@ -40,6 +40,20 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <!-- English Subject Helper -->
+<div id="englishHelper" style="display: none;" class="mb-3">
+    <div class="alert alert-info d-flex align-items-center justify-content-between">
+        <div>
+            <i class="ri-file-text-line me-2"></i>
+            <strong>Setting English Comprehension Questions?</strong>
+            <p class="mb-0 small">Create a passage first, then add questions to it.</p>
+        </div>
+        <a href="{{ route('admin.passages.create') }}" class="btn-admin btn-admin-primary btn-sm">
+            <i class="ri-add-line me-2"></i> Create Passage
+        </a>
+    </div>
+</div>
                             
                             <div class="col-md-6 mb-3">
                                 <label for="topic_id" class="form-label">Topic (Optional)</label>
@@ -382,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
    tinymce.init({
     selector: '#question_text',
      license_key: 'gpl',
-    height: 200,
+    height: 300,
     menubar: false,
     plugins: 'lists link image table code help wordcount',
     toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code help',
@@ -414,8 +428,30 @@ document.addEventListener('DOMContentLoaded', function() {
         allowClear: true
     });
     
+    function checkEnglishSubject() {
+        const option = $('#subject_id').find('option:selected');
+        const selectedText = option.text().toLowerCase();
+        const subjectId = $('#subject_id').val();
+        
+        const isEnglish = selectedText.includes('english') || 
+                          selectedText.includes('use of english') ||
+                          selectedText.includes('eng') ||
+                          (subjectId && subjectId == '1');
+                          
+        if (isEnglish) {
+            $('#englishHelper').show();
+        } else {
+            $('#englishHelper').hide();
+        }
+    }
+    
+    // Initial check on page load
+    checkEnglishSubject();
+    
     // Load topics when subject changes
     $('#subject_id').change(function() {
+        checkEnglishSubject();
+        
         const subjectId = $(this).val();
         const topicSelect = $('#topic_id');
         
@@ -623,5 +659,8 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+
+
+// English helper logic moved to DOMContentLoaded block
 </script>
-@endpush
+@endpush 

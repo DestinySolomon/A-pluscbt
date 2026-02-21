@@ -234,17 +234,21 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.tiny.cloud/1/YOUR_TINY_API_KEY/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
 
 <script>
 $(document).ready(function() {
     // Initialize TinyMCE
     tinymce.init({
         selector: '#content',
+        license_key: 'gpl',
         height: 400,
+        menubar: false,
         plugins: 'lists link image table code help wordcount',
-        toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
+        toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code help',
         content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 15px; line-height: 1.6; }',
+        skin_url: '{{ asset("js/tinymce/skins/ui/oxide") }}',
+        content_css: '{{ asset("js/tinymce/skins/content/default/content.css") }}',
         setup: function(editor) {
             editor.on('change', function() {
                 updatePreview();

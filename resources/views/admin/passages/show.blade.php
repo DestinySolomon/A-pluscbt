@@ -48,7 +48,7 @@
                     </div>
                     <div class="text-muted small text-end">
                         <div>ID: {{ $passage->id }}</div>
-                        <div>{{ $passage->questions_count }} Questions</div>
+                        <div>{{ $passage->questions->count() }} Questions</div>
                     </div>
                 </div>
             </div>
@@ -67,7 +67,7 @@
                 @endif
                 
                 <div class="passage-content p-4 bg-light rounded mb-4">
-                    {!! nl2br(e($passage->content)) !!}
+                    {!! $passage->content !!}
                 </div>
                 
                 @if($passage->image_path)
@@ -84,7 +84,7 @@
         <!-- Questions Card -->
         <div class="admin-card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Questions ({{ $passage->questions_count }})</h5>
+                <h5 class="mb-0">Questions ({{ $passage->questions->count() }})</h5>
                 <button type="button" class="btn-admin btn-admin-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
                     <i class="ri-add-line me-1"></i> Add Question
                 </button>
@@ -112,10 +112,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($passage->questions as $question)
+                            @foreach($passage->questions as $index => $question)
                             <tr>
-                                <td><span class="badge bg-secondary">{{ $question->question_number }}</span></td>
-                                <td>{{ Str::limit(strip_tags($question->question_text), 60) }}</td>
+                                <td><span class="badge bg-secondary">{{ $question->question_number ?? ($index + 1) }}</span></td>
+                                <td>{!! Str::limit(strip_tags($question->question_text), 60) !!}</td>
                                 <td>
                                     @foreach($question->options as $option)
                                     <span class="badge bg-light text-dark me-1">{{ $option->option_letter }}</span>
@@ -170,7 +170,7 @@
                     <li class="mb-3">
                         <div class="d-flex justify-content-between">
                             <span class="text-muted">Total Questions:</span>
-                            <strong>{{ $passage->questions_count }}</strong>
+                            <strong>{{ $passage->questions->count() }}</strong>
                         </div>
                     </li>
                     <li class="mb-3">
@@ -225,7 +225,7 @@
                                name="question_number" 
                                id="question_number" 
                                class="form-control" 
-                               value="{{ $passage->questions_count + 1 }}" 
+                               value="{{ $passage->questions->count() + 1 }}" 
                                min="1" 
                                required>
                     </div>

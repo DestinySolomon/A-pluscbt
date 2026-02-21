@@ -61,9 +61,9 @@ $(document).ready(function() {
         }
     });
     
-    // Auto-dismiss alerts after 5 seconds
+    // Auto-dismiss alerts after 5 seconds (only dismiss flash messages, not static UI alerts)
     setTimeout(function() {
-        $('.alert').alert('close');
+        $('.alert.alert-dismissible').alert('close');
     }, 5000);
     
     // Update active menu item based on current URL
